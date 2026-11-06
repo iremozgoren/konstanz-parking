@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+
+# Data: raw snapshots live on the `data` branch, never on main
+data/
+# ParkenDD dumps have no explicit license: never commit them
+data/external/
+
+.DS_Store
