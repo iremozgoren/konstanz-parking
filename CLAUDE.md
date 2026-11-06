@@ -95,6 +95,20 @@ tests/
   use ArcGIS `max_cap`.
 - ArcGIS/ParkAPI `konstanz`: Döbele and Europabrücke report 0 free of 0, which is not real data.
 - ParkenDD dumps: rows unsorted; `0 free` over long spans can mean closed or no data, not full.
+  `bykguldenstr` is constant 0 (unusable). `seerheincenter` is frozen before 2020.
+
+## 2020 border closure: ParkenDD coverage (checked 2026-11-06)
+
+Window 2020-03-16 to 2020-06-15 (92 days). 97 % of 5-min slots are present for every lot.
+Days with ≥ 80 % slots and non-constant values:
+altstadt, augustinerkarstadt, bodenseeforum, doebele, fischmarkt, lago: 92/92;
+benediktiner, marktstaette: 85/92; seerheincenter: 83/92.
+Comparison windows: 2020-01-06 to 03-15 (99.9 %), 2020-06-16 to 09-30 (94 %), 2018 same window
+(81.5 %, data ends 2018-06-01), 2019 same window (33 %, data starts 2019-05-16).
+**Confounder:** the closure overlaps the German COVID retail lockdown (shops closed from mid-March,
+partial reopening from around 20 April 2020). Split the window into lockdown vs.
+shops-open-but-border-closed, and use car parks less dependent on shoppers (benediktiner, bodenseeforum)
+as within-city contrasts.
 
 ## Data sources (Phase 0 findings, verified 2026-11-06)
 
