@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out collector code (main)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Compute UTC dates for sparse checkout
         id: dates
@@ -33,7 +33,7 @@ jobs:
       # Only today's (and tomorrow's, for runs crossing midnight) daily files are needed to
       # append, so the checkout stays small no matter how large the data branch grows.
       - name: Check out data branch (sparse)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: data
           path: data-branch
@@ -45,7 +45,7 @@ jobs:
             /data/raw/*/${{ steps.dates.outputs.tomorrow }}.jsonl
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v10.0.0
         with:
           enable-cache: true
 
