@@ -56,7 +56,8 @@ Some of the data used here is openly licensed and some is not.
 | [ECB data API](https://data.ecb.europa.eu/) – `EXR/D.CHF.EUR.SP00.A` | CHF/EUR exchange rate (planned) | ECB reuse policy (free, source must be cited) | |
 | [OpenHolidays API](https://www.openholidaysapi.org/) | Public and school holidays for DE-BW, CH-TG, CH-ZH (planned) | Open data, see their terms | Some Swiss school holidays are set per municipality, so canton-level dates are approximate. |
 
-The code in this repository is my own work. No license has been chosen yet.
+The **code** in this repository is licensed under the [MIT License](LICENSE). The MIT License
+covers the code only, **not** the data: each data source keeps its own terms listed above.
 
 ## Development
 
