@@ -80,6 +80,13 @@ tests/
 - City HTML: store the verbatim parking-section slice (~12 KB, ~5 KB during outages), with the SHA-256
   of the full page. Fall back to the full page if the section markers are missing.
 - Every run is logged with real timestamps in `data/raw/runs/<date>.jsonl` (GitHub cron delays/skips).
+- **Triggers:** primary = cron-job.org calling the `workflow_dispatch` API every 15 min at :00/:15/:30/:45
+  (`inputs.trigger = "cron-job.org"`); backup = GitHub schedule at :07/:22/:37/:52 (it fired only 2× in
+  ~10 h on 2026-11-06/07). `collect --min-interval 600` skips a run if the last non-skipped snapshot is
+  < 10 min old, and logs it with `"skipped": true` and its `trigger`, so per-trigger reliability can be measured.
+- The cron-job.org job uses a **fine-grained PAT** (only this repo, Actions: read & write) that **expires
+  around 2027-11-07**. The token lives only in cron-job.org; never put it in the repo or the chat. When
+  it expires, dispatches fail with 401 and only the backup schedule remains.
 - **GitHub disables scheduled workflows in public repos after 60 days without repository activity.**
   It is unclear whether the bot's pushes to `data` count. GitHub emails a warning first; re-enable with
   `gh workflow enable collect.yml`, or push any commit to `main` at least every ~50 days.

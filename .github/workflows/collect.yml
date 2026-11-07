@@ -3,11 +3,22 @@ name: collect
 # Polls all parking sources every 15 minutes and commits raw snapshots to the `data` branch.
 # GitHub cron is best-effort: runs may be delayed or skipped. Every run logs its actual
 # timestamps to data/raw/runs/<date>.jsonl so gaps are detectable.
-# Minutes are offset from :00 because the top of the hour is GitHub's busiest time.
+#
+# Two triggers:
+# - primary: cron-job.org calls the workflow_dispatch API at :00/:15/:30/:45
+#   with inputs.trigger = "cron-job.org" (GitHub's own cron drops many runs on quiet repos);
+# - backup: GitHub's schedule at :07/:22/:37/:52 (offset from :00, GitHub's busiest time).
+# Runs within 10 min of the last snapshot are skipped (logged as `skipped` in the run log),
+# so both triggers firing never produces duplicate snapshots.
 on:
   schedule:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      trigger:
+        description: "Who triggered this run (recorded in the run log)"
+        required: false
+        default: manual
 
 permissions:
   contents: write
@@ -27,11 +38,12 @@ jobs:
       - name: Compute UTC dates for sparse checkout
         id: dates
         run: |
+          echo "yesterday=$(date -u -d yesterday +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
           echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
           echo "tomorrow=$(date -u -d tomorrow +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
-      # Only today's (and tomorrow's, for runs crossing midnight) daily files are needed to
-      # append, so the checkout stays small no matter how large the data branch grows.
+      # Only yesterday's/today's/tomorrow's daily files are needed (append + 10-min skip check
+      # across midnight), so the checkout stays small no matter how large the branch grows.
       - name: Check out data branch (sparse)
         uses: actions/checkout@v7
         with:
@@ -41,6 +53,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /README.md
+            /data/raw/*/${{ steps.dates.outputs.yesterday }}.jsonl
             /data/raw/*/${{ steps.dates.outputs.today }}.jsonl
             /data/raw/*/${{ steps.dates.outputs.tomorrow }}.jsonl
 
@@ -52,7 +65,11 @@ jobs:
       - name: Collect snapshots
         # The collector itself never fails on bad responses; failures are recorded as data
         # and surfaced as warning annotations.
-        run: uv run --frozen konstanz-parking collect --data-dir data-branch/data/raw
+        env:
+          COLLECT_TRIGGER: ${{ github.event_name == 'schedule' && 'github-schedule' || inputs.trigger || 'manual' }}
+        run: >-
+          uv run --frozen konstanz-parking collect
+          --data-dir data-branch/data/raw --min-interval 600
 
       - name: Commit and push to data branch
         working-directory: data-branch

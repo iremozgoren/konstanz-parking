@@ -18,7 +18,7 @@ import os
 import time
 import uuid
 from collections.abc import Callable, Iterable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -161,9 +161,30 @@ def _github_context() -> dict[str, str | None]:
         "github_run_id": "GITHUB_RUN_ID",
         "github_run_attempt": "GITHUB_RUN_ATTEMPT",
         "github_event": "GITHUB_EVENT_NAME",
+        "trigger": "COLLECT_TRIGGER",
         "github_sha": "GITHUB_SHA",
     }
     return {k: os.environ.get(v) for k, v in keys.items()}
+
+
+def last_snapshot_time(data_dir: Path, now: datetime) -> datetime | None:
+    """Start time of the most recent non-skipped run in today's or yesterday's run log."""
+    latest: datetime | None = None
+    for day in (now - timedelta(days=1), now):
+        path = data_dir / "runs" / f"{day:%Y-%m-%d}.jsonl"
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                rec = json.loads(line)
+                if rec.get("skipped"):
+                    continue
+                ts = datetime.fromisoformat(rec["started_at"].replace("Z", "+00:00"))
+            except (ValueError, KeyError, TypeError, AttributeError):
+                continue  # a corrupt log line must not block collection
+            if latest is None or ts > latest:
+                latest = ts
+    return latest
 
 
 def run(
@@ -171,11 +192,37 @@ def run(
     sources: Iterable[Source] = SOURCES,
     client: httpx.Client | None = None,
     sleep: Callable[[float], None] = time.sleep,
+    min_interval_s: float = 0.0,
 ) -> dict[str, Any]:
-    """Poll every source once, write snapshots and a run log entry. Returns the run record."""
+    """Poll every source once, write snapshots and a run log entry. Returns the run record.
+
+    If the previous snapshot is younger than ``min_interval_s`` (two triggers firing close
+    together), nothing is fetched; only a ``skipped`` entry is written to the run log.
+    """
     started_at = utc_now()
     day = started_at.strftime("%Y-%m-%d")
     run_id = f"{started_at.strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:8]}"
+
+    if min_interval_s > 0:
+        last = last_snapshot_time(data_dir, started_at)
+        if last is not None and (started_at - last).total_seconds() < min_interval_s:
+            age = (started_at - last).total_seconds()
+            log.info(
+                "last snapshot %s is %.0fs old (< %.0fs): skipping", iso(last), age, min_interval_s
+            )
+            skip_record = {
+                "schema_version": SCHEMA_VERSION,
+                "run_id": run_id,
+                "started_at": iso(started_at),
+                "finished_at": iso(utc_now()),
+                **_github_context(),
+                "skipped": True,
+                "skip_reason": f"last snapshot {iso(last)} is {age:.0f}s old",
+                "sources": {},
+            }
+            append_jsonl(data_dir / "runs" / f"{day}.jsonl", skip_record)
+            return skip_record
+
     own_client = client is None
     if client is None:
         client = httpx.Client(
@@ -220,6 +267,7 @@ def run(
         "started_at": iso(started_at),
         "finished_at": iso(utc_now()),
         **_github_context(),
+        "skipped": False,
         "sources": summary,
     }
     append_jsonl(data_dir / "runs" / f"{day}.jsonl", run_record)

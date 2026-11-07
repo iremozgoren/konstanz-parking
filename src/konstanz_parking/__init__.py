@@ -14,6 +14,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p_collect = sub.add_parser("collect", help="poll all parking sources once")
     p_collect.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    p_collect.add_argument(
+        "--min-interval",
+        type=float,
+        default=0.0,
+        help="skip if the last snapshot is younger than this many seconds",
+    )
 
     p_dl = sub.add_parser("download-parkendd", help="download historical ParkenDD dumps")
     p_dl.add_argument("--dest", type=Path, default=Path("data/external/parkendd"))
@@ -27,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "collect":
         from konstanz_parking.collector import run
 
-        record = run(args.data_dir)
+        record = run(args.data_dir, min_interval_s=args.min_interval)
         failed = [n for n, s in record["sources"].items() if not (s["ok"] and s["valid"])]
         for name in failed:
             # GitHub Actions annotation; visible in the run summary, does not fail the job.

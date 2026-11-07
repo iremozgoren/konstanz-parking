@@ -37,6 +37,10 @@ A natural experiment is built into the history: during the Swiss–German border
   workflow. They are recorded as data and shown as warning annotations.
 - Every run logs its actual start/end time to `data/raw/runs/<date>.jsonl`, because GitHub's
   cron is best-effort and runs can be delayed or skipped.
+- Because GitHub's cron drops many runs on quiet repositories, an external scheduler
+  ([cron-job.org](https://cron-job.org)) triggers the workflow every 15 minutes through the
+  `workflow_dispatch` API. GitHub's own schedule stays on as a backup. A run within 10 minutes
+  of the previous snapshot is skipped (and logged), so the two triggers never create duplicates.
 - Requests identify themselves with a descriptive User-Agent including a contact address.
   `konstanz.de` gets at most one request per run, and retries wait at least 30 s, as its
   robots.txt asks.

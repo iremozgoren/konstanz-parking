@@ -208,8 +208,8 @@ def test_cli_collect_returns_zero_when_all_sources_fail(tmp_path, monkeypatch):
 
     real_run = collector.run
 
-    def fake_run(data_dir):
-        return real_run(data_dir, client=make_client(handler), sleep=no_sleep)
+    def fake_run(data_dir, **kwargs):
+        return real_run(data_dir, client=make_client(handler), sleep=no_sleep, **kwargs)
 
     monkeypatch.setattr(collector, "run", fake_run)
     assert main(["collect", "--data-dir", str(tmp_path)]) == 0
@@ -233,3 +233,40 @@ def test_user_agent_has_contact_and_no_blocked_words():
     # konstanz.de hides the parking tables from UAs containing "collector".
     assert "collector" not in USER_AGENT.lower()
     assert "irem11314@gmail.com" in USER_AGENT
+
+
+def test_second_trigger_within_min_interval_is_skipped(tmp_path: Path):
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        return httpx.Response(200, text='{"items": []}')
+
+    sources = [Source("s", "https://e.org/s", validate=validate_parkapi)]
+    client = make_client(handler)
+    first = collector.run(tmp_path, sources, client=client, sleep=no_sleep, min_interval_s=600)
+    second = collector.run(tmp_path, sources, client=client, sleep=no_sleep, min_interval_s=600)
+
+    assert first["skipped"] is False and second["skipped"] is True
+    assert calls["n"] == 1  # no request on the skipped run
+    day = first["started_at"][:10]
+    assert len((tmp_path / "s" / f"{day}.jsonl").read_text().splitlines()) == 1
+    runs = [json.loads(x) for x in (tmp_path / "runs" / f"{day}.jsonl").read_text().splitlines()]
+    assert [r["skipped"] for r in runs] == [False, True]
+
+
+def test_last_snapshot_time_ignores_skips_old_runs_and_corrupt_lines(tmp_path: Path):
+    from datetime import UTC, datetime
+
+    now = datetime(2026, 11, 8, 0, 5, tzinfo=UTC)
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    (runs / "2026-11-07.jsonl").write_text(
+        '{"started_at": "2026-11-07T23:58:00.000Z", "skipped": false}\n'
+    )
+    (runs / "2026-11-08.jsonl").write_text(
+        'garbage\n{"started_at": "2026-11-08T00:01:00.000Z", "skipped": true}\n'
+    )
+    # Yesterday's file counts (midnight crossing); skipped entries and garbage do not.
+    assert collector.last_snapshot_time(tmp_path, now) == datetime(2026, 11, 7, 23, 58, tzinfo=UTC)
+    assert collector.last_snapshot_time(tmp_path / "empty", now) is None
