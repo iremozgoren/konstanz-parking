@@ -20,6 +20,13 @@ requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
+analysis = [
+    "duckdb>=2.0.0",
+    "holidays>=0.108",
+    "matplotlib>=3.11.2",
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+]
 dev = [
     "pytest>=9.2.0",
     "ruff>=0.17.4",
@@ -34,3 +41,7 @@ select = ["E", "F", "W", "I", "UP", "B", "BLE", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.uv]
+# The collector (GitHub Actions cron) runs with --no-default-groups and only needs httpx.
+default-groups = ["dev", "analysis"]

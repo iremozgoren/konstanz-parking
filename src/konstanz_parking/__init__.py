@@ -25,6 +25,10 @@ def main(argv: list[str] | None = None) -> int:
     p_dl.add_argument("--dest", type=Path, default=Path("data/external/parkendd"))
     p_dl.add_argument("--overwrite", action="store_true")
 
+    p_cov = sub.add_parser("coverage", help="coverage of the ParkenDD history per lot and month")
+    p_cov.add_argument("--dumps", type=Path, default=Path("data/external/parkendd"))
+    p_cov.add_argument("--reports", type=Path, default=Path("reports"))
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -46,6 +50,12 @@ def main(argv: list[str] | None = None) -> int:
 
         files = download(args.dest, overwrite=args.overwrite)
         print(f"downloaded {len(files)} new files to {args.dest}")
+        return 0
+
+    if args.command == "coverage":
+        from konstanz_parking.history.cli import coverage
+
+        coverage(args.dumps, args.reports)
         return 0
 
     return 2

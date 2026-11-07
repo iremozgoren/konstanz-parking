@@ -68,7 +68,7 @@ jobs:
         env:
           COLLECT_TRIGGER: ${{ github.event_name == 'schedule' && 'github-schedule' || inputs.trigger || 'manual' }}
         run: >-
-          uv run --frozen konstanz-parking collect
+          uv run --frozen --no-default-groups konstanz-parking collect
           --data-dir data-branch/data/raw --min-interval 600
 
       - name: Commit and push to data branch
