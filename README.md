@@ -14,8 +14,8 @@ reasons that have nothing to do with shopping.
 |---|---|---|
 | 0 | Data source feasibility | ✅ done |
 | 1 | Collector (GitHub Actions, every 15 min) + historical download | ✅ running |
-| 2 | Cleaning pipeline + data quality report | planned |
-| 3 | Weather, FX and holiday features | planned |
+| 2 | Cleaning pipeline + data quality report | ✅ done for the 2015–2022 history ([report](reports/data_quality_parkendd.md)); live data pending |
+| 3 | Weather, FX and holiday features | ✅ joined onto the history ([notes](reports/auxiliary_data.md)) |
 | 4 | Exploratory analysis | planned |
 | 5 | Occupancy forecasting model | planned |
 | 6 | Streamlit dashboard | planned |
@@ -56,9 +56,11 @@ Some of the data used here is openly licensed and some is not.
 | [MobiData BW ParkAPI v3](https://api.mobidata-bw.de/park-api/) – source `konstanz` | Same city data via the state platform | **CC BY 4.0** (Stadt Konstanz) | Shows the same gaps as ArcGIS. |
 | MobiData BW ParkAPI v3 – source `pbw` | University car parks (control group) | **Not stated** by the platform for this source | Operator: Parkraumgesellschaft Baden-Württemberg. |
 | [ParkenDD dumps](https://parkendd.de/dumps/) | Historical 5-min data, 2015–2022 | **No license stated.** | Downloaded locally by `konstanz-parking download-parkendd` into a gitignored folder. **Never committed or redistributed.** |
-| [DWD Open Data](https://opendata.dwd.de/) – station 02712 Konstanz | Weather (planned) | DWD terms of use (open, attribution required) | |
-| [ECB data API](https://data.ecb.europa.eu/) – `EXR/D.CHF.EUR.SP00.A` | CHF/EUR exchange rate (planned) | ECB reuse policy (free, source must be cited) | |
-| [OpenHolidays API](https://www.openholidaysapi.org/) | Public and school holidays for DE-BW, CH-TG, CH-ZH (planned) | Open data, see their terms | Some Swiss school holidays are set per municipality, so canton-level dates are approximate. |
+| [DWD Open Data](https://opendata.dwd.de/) – station 02712 Konstanz | Weather | DWD terms of use (open, attribution required) | |
+| [ECB data API](https://data.ecb.europa.eu/) – `EXR/D.CHF.EUR.SP00.A` | CHF/EUR exchange rate | ECB reuse policy (free, source must be cited) | |
+| [OpenHolidays API](https://www.openholidaysapi.org/) | School holidays for DE-BW, and for CH-TG/CH-ZH from 2020 | ODbL | Some Swiss school holidays are set per municipality, so canton-level dates are approximate. |
+| [EDK school holiday lists](https://www.edk.ch/de/bildungssystem/kantonale-schulorganisation/Schulferien) (via edudoc.ch / Internet Archive) | Swiss school holidays 2015–2019, transcribed with sources into `auxiliary/ch_school_holidays_manual.csv` | Reproduction with attribution | |
+| [`holidays`](https://pypi.org/project/holidays/) Python package | Public holidays DE-BW, CH-TG, CH-ZH | MIT | |
 
 The **code** in this repository is licensed under the [MIT License](LICENSE). The MIT License
 covers the code only, **not** the data: each data source keeps its own terms listed above.
@@ -74,4 +76,14 @@ uv run ruff check . && uv run ruff format .
 
 uv run konstanz-parking collect --data-dir /tmp/raw     # poll once
 uv run konstanz-parking download-parkendd               # history → data/external/parkendd/
+
+# Phase 2/3 pipeline for the ParkenDD history (outputs in data/processed/ are not committed)
+uv run konstanz-parking coverage     # raw coverage per car park and month → reports/tables, reports/figures
+uv run konstanz-parking clean        # flags → data/processed/parkendd_clean.parquet + parkendd_15min.parquet
+uv run konstanz-parking report       # → reports/data_quality_parkendd.md
+uv run konstanz-parking fetch-aux    # DWD, ECB, OpenHolidays → data/external/
+uv run konstanz-parking features     # → data/processed/features_15min.parquet
 ```
+
+The collector workflow runs with `uv run --no-default-groups`, so it only installs `httpx`. The
+analysis libraries (pandas, DuckDB, matplotlib, …) live in the `analysis` dependency group.

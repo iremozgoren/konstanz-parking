@@ -67,6 +67,25 @@ tests/
   ArcGIS + ParkAPI `konstanz`/`pbw` alongside. The `pbw` university car parks are the control group.
 - Phase 1 built (2026-11-06): `src/konstanz_parking/` (`collector.py`, `sources.py`, `parkendd.py`),
   `.github/workflows/collect.yml` (cron) and `ci.yml` (ruff + pytest).
+- Phase 2 + 3 done **for the ParkenDD history** (2026-11-07): `src/konstanz_parking/history/`
+  (`lots.py`, `load.py`, `coverage.py`, `clean.py`, `report.py`) and `src/konstanz_parking/auxiliary/`
+  (`weather.py`, `fx.py`, `holidays.py`, `covid.py`, `features.py`). Report:
+  `reports/data_quality_parkendd.md`; aux notes: `reports/auxiliary_data.md`. Cleaning the *live*
+  collector data is still to do (reuse the flag logic).
+
+## Phase 2/3 pipeline rules
+
+- Pipeline: `coverage` → `clean` → `report`; `fetch-aux` → `features`. Outputs in `data/processed/`
+  (gitignored, derived from unlicensed dumps). `reports/` (Markdown, PNG, aggregate CSV) **is** committed.
+- Rows are flagged, never silently deleted (`valid` = no invalid flag). Thresholds are constants at the
+  top of `history/clean.py`; the report recomputes every number, so re-run `report` after changes.
+- Occupancy = 1 − free / **effective capacity** (99.9th pct of valid free per lot / capacity period),
+  because official capacities contradict the history. Official ArcGIS capacity is informational only.
+- Analysis deps are in the uv group `analysis`; the collector workflow uses `--no-default-groups`.
+- Matplotlib figures use `history/plotstyle.py` (fixed categorical colour order, blue ramp).
+- **The University of Konstanz car parks (`pbw`, control group) exist only in the live data**, not in
+  the ParkenDD history. The 2020 natural experiment has no university control group; use within-city
+  contrasts instead.
 
 ## Phase 1 operating rules (decided with the user)
 
@@ -93,7 +112,7 @@ tests/
 - Raw data volume is ~2.4 MB/day (~0.9 GB/year). If repo size becomes a problem, compact old months
   into archives in Phase 2. Never edit raw lines.
 
-## Known data quirks (for Phase 2)
+## Known data quirks
 
 - konstanz.de hides the parking tables from User-Agents containing "collector" (probably a bot
   keyword list). Every snapshot before the UA fix (until 2026-11-07 08:16 UTC) has `valid=false` for this
@@ -106,6 +125,14 @@ tests/
 - ArcGIS/ParkAPI `konstanz`: Döbele and Europabrücke report 0 free of 0, which is not real data.
 - ParkenDD dumps: rows unsorted; `0 free` over long spans can mean closed or no data, not full.
   `bykguldenstr` is constant 0 (unusable). `seerheincenter` is frozen before 2020.
+- ParkenDD (found in Phase 2, details in the report): timestamps verified as UTC. Renames
+  `augustinerkarstadt`→`augustiner` (2022-01-10), `amseerhein`→`bodenseeforum` (2016-11-25). Several car
+  parks report 0 at night while closed, and drop to 0 for ~15 min every day at 07:00 local (feed reset;
+  some at midnight). Negative values only in 2022. Bodenseeforum capped at 500. Seerheincenter
+  reported up to 1410 in mid-2020, capacity ceiling 280 → 235. Official capacities disagree with the data
+  (Altstadt ≤ 259 of 359, Benediktiner > 118, Döbele ≤ 335 vs ArcGIS 435). Feed-wide freezes, e.g.
+  2020-08-11..20. **LAGO frozen 2020-05-12..25** (inside the key border-closure window). Holes:
+  2019-02-11..05-16 and almost all of 2021.
 
 ## 2020 border closure: ParkenDD coverage (checked 2026-11-06)
 
@@ -115,10 +142,11 @@ altstadt, augustinerkarstadt, bodenseeforum, doebele, fischmarkt, lago: 92/92;
 benediktiner, marktstaette: 85/92; seerheincenter: 83/92.
 Comparison windows: 2020-01-06 to 03-15 (99.9 %), 2020-06-16 to 09-30 (94 %), 2018 same window
 (81.5 %, data ends 2018-06-01), 2019 same window (33 %, data starts 2019-05-16).
-**Confounder:** the closure overlaps the German COVID retail lockdown (shops closed from mid-March,
-partial reopening from around 20 April 2020). Split the window into lockdown vs.
-shops-open-but-border-closed, and use car parks less dependent on shoppers (benediktiner, bodenseeforum)
-as within-city contrasts.
+**Confounder:** the closure overlaps the German COVID retail lockdown. Phases are now encoded as
+`covid_phase` in `auxiliary/covid.py` (dates verified with sources): pre_covid; border_closed_shops_open
+(16–17 Mar); lockdown (18 Mar–19 Apr: effects not separable); **shops_open_border_closed (20 Apr–14 Jun,
+key window)**; border_reopened (15 Jun–15 Dec); later_covid (from 16 Dec 2020). Use car parks less
+dependent on shoppers (benediktiner, bodenseeforum) as within-city contrasts.
 
 ## Data sources (Phase 0 findings, verified 2026-11-06)
 

@@ -98,3 +98,33 @@ def clean(dump_dir: Path, processed: Path, reports: Path) -> None:
     ]
     print("\n% usable days after cleaning (07-20 h), 2020-01..2020-09\n")
     print(cov.to_markdown(cov.pivot(window, "pct_usable_days")))
+
+
+def fetch_aux(external: Path) -> None:
+    from konstanz_parking.auxiliary.download import download_all
+
+    download_all(external)
+
+
+def features(processed: Path, external: Path, reports: Path) -> None:
+    """Join auxiliary data onto the 15-min grid -> data/processed/features_15min.parquet."""
+    from konstanz_parking.auxiliary import features as feat
+    from konstanz_parking.auxiliary.holidays import school_periods
+
+    grid = pd.read_parquet(processed / "parkendd_15min.parquet")
+    out = feat.build(grid, external)
+    out.to_parquet(processed / "features_15min.parquet", index=False)
+
+    tables = reports / "tables"
+    tables.mkdir(parents=True, exist_ok=True)
+    school_periods(external / "openholidays").to_csv(
+        tables / "school_holiday_periods.csv", index=False
+    )
+    missing = out.drop(columns=["free", "occupancy"]).isna().mean().mul(100).round(2)
+    missing = missing[missing > 0].sort_values(ascending=False)
+    missing.rename("pct_missing").to_csv(tables / "features_missing.csv")
+    print(
+        f"wrote {processed / 'features_15min.parquet'}: {len(out):,} rows, {out.shape[1]} columns"
+    )
+    print("columns with missing values (%):")
+    print(missing.to_string())

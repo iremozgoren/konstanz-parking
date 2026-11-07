@@ -51,7 +51,7 @@ def _md(table: pd.DataFrame) -> str:
 
 def _last_sunday(year: int, month: int) -> pd.Timestamp:
     d = pd.Timestamp(year, month, 1) + pd.offsets.MonthEnd(0)
-    return d - pd.Timedelta(days=(d.dayofweek + 1) % 7)
+    return d - pd.Timedelta(days=(d.day_of_week + 1) % 7)
 
 
 # --- analyses ---------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ def dst_lag_table(df: pd.DataFrame) -> pd.DataFrame:
     time mislabelled as UTC, the best lag would be 0.
     """
     v = df[df["valid"]][["ts_utc", "occupancy"]]
-    v = v[v["ts_utc"].dt.dayofweek < 5]
+    v = v[v["ts_utc"].dt.day_of_week < 5]
     rows = []
     for year in range(2015, 2023):
         for month, expected in ((3, -1), (10, +1)):
@@ -229,7 +229,7 @@ def fig_dst(ctx: Ctx, year: int = 2018) -> None:
 
     plotstyle.apply()
     v = ctx.df[ctx.df["valid"]][["ts_utc", "ts_local", "occupancy"]]
-    v = v[v["ts_utc"].dt.dayofweek < 5]
+    v = v[v["ts_utc"].dt.day_of_week < 5]
     switch = pd.Timestamp(_last_sunday(year, 3), tz="UTC")
     before = v[(v["ts_utc"] >= switch - pd.Timedelta(days=21)) & (v["ts_utc"] < switch)]
     after = v[(v["ts_utc"] > switch + pd.Timedelta(days=1))]
@@ -331,7 +331,7 @@ def fig_zero_weekday(ctx: Ctx, runs: pd.DataFrame) -> None:
         (axes[0], full, "Daytime runs of 0 free (kept as 'full')", plotstyle.CATEGORICAL[0]),
         (axes[1], closed, "Night runs of 0 free (flagged 'closed')", plotstyle.CATEGORICAL[3]),
     ):
-        counts = d["start_local"].dt.dayofweek.value_counts().reindex(range(7), fill_value=0)
+        counts = d["start_local"].dt.day_of_week.value_counts().reindex(range(7), fill_value=0)
         ax.bar(days, counts.to_numpy(), color=c, width=0.6)
         ax.set_title(title, fontsize=10)
         ax.grid(axis="x", visible=False)
@@ -462,7 +462,7 @@ def render(
     interval_med = float(gap_lens.median())
 
     full_runs = zruns[zruns["cls"] == "full (daytime, kept)"]
-    sat_share = (full_runs["start_local"].dt.dayofweek == 5).mean()
+    sat_share = (full_runs["start_local"].dt.day_of_week == 5).mean()
     late_morning = full_runs["start_local"].dt.hour.between(10, 12).mean()
     closed_runs = zruns[zruns["cls"] == "closed (outside daytime)"]
     closed_lots = closed_runs.groupby("lot_id", observed=True).size().sort_values(ascending=False)

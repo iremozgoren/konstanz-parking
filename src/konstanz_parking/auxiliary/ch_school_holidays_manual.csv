@@ -1,0 +1,54 @@
+canton,kind,start,end,source,note
+CH-TG,sport,2015-01-24,2015-02-01,EDK Schulferien 2015 (Stand 26.8.2014),
+CH-TG,spring,2015-04-03,2015-04-19,EDK Schulferien 2015 (Stand 26.8.2014),source prints end year 2013 (typo); Easter-linked holidays 2015
+CH-TG,summer,2015-07-04,2015-08-09,EDK Schulferien 2015 (Stand 26.8.2014),
+CH-TG,autumn,2015-10-03,2015-10-18,EDK Schulferien 2015 (Stand 26.8.2014),
+CH-TG,christmas,2015-12-24,2016-01-03,EDK Schulferien 2015 (Stand 26.8.2014),
+CH-TG,sport,2016-01-30,2016-02-07,EDK Schulferien 2016 (Stand 24.6.2015),
+CH-TG,spring,2016-03-25,2016-04-10,EDK Schulferien 2016 (Stand 24.6.2015),
+CH-TG,summer,2016-07-09,2016-08-14,EDK Schulferien 2016 (Stand 24.6.2015),
+CH-TG,autumn,2016-10-08,2016-10-23,EDK Schulferien 2016 (Stand 24.6.2015),
+CH-TG,christmas,2016-12-24,2017-01-02,EDK Schulferien 2016 (Stand 24.6.2015),
+CH-TG,sport,2017-01-28,2017-02-05,EDK Schulferien 2017 (Stand 9.2.2017),
+CH-TG,spring,2017-04-01,2017-04-17,EDK Schulferien 2017 (Stand 9.2.2017),
+CH-TG,summer,2017-07-08,2017-08-13,EDK Schulferien 2017 (Stand 9.2.2017),
+CH-TG,autumn,2017-10-07,2017-10-22,EDK Schulferien 2017 (Stand 9.2.2017),
+CH-TG,christmas,2017-12-23,2018-01-07,EDK Schulferien 2017 (Stand 9.2.2017),
+CH-TG,sport,2018-01-27,2018-02-04,EDK Schulferien 2018 (Stand 6.4.2017),
+CH-TG,spring,2018-03-30,2018-04-15,EDK Schulferien 2018 (Stand 6.4.2017),
+CH-TG,summer,2018-07-07,2018-08-12,EDK Schulferien 2018 (Stand 6.4.2017),
+CH-TG,autumn,2018-10-06,2018-10-21,EDK Schulferien 2018 (Stand 6.4.2017),
+CH-TG,christmas,2018-12-22,2019-01-06,EDK Schulferien 2018 (Stand 6.4.2017),
+CH-TG,sport,2019-01-26,2019-02-03,EDK Schulferien 2019 (Stand 30.8.2018),
+CH-TG,spring,2019-04-06,2019-04-22,EDK Schulferien 2019 (Stand 30.8.2018),
+CH-TG,summer,2019-07-06,2019-08-11,EDK Schulferien 2019 (Stand 30.8.2018),
+CH-TG,autumn,2019-10-05,2019-10-20,EDK Schulferien 2019 (Stand 30.8.2018),
+CH-TG,christmas,2019-12-21,2020-01-05,EDK Schulferien 2019 (Stand 30.8.2018),
+CH-ZH,sport,2015-02-07,2015-02-22,EDK Schulferien 2015 (Stand 26.8.2014),local deviations possible
+CH-ZH,spring,2015-04-18,2015-05-03,EDK Schulferien 2015 (Stand 26.8.2014),local deviations possible
+CH-ZH,summer,2015-07-11,2015-08-16,EDK Schulferien 2015 (Stand 26.8.2014),local deviations possible
+CH-ZH,autumn,2015-10-03,2015-10-18,EDK Schulferien 2015 (Stand 26.8.2014),local deviations possible
+CH-ZH,christmas,2015-12-19,2016-01-03,EDK Schulferien 2015 (Stand 26.8.2014),local deviations possible
+CH-ZH,sport_unknown,2016-02-01,2016-02-29,EDK Schulferien 2016 (Stand 24.6.2015),sport week not listed (set by municipalities); February marked unknown
+CH-ZH,spring,2016-04-23,2016-05-08,EDK Schulferien 2016 (Stand 24.6.2015),local deviations possible
+CH-ZH,summer,2016-07-16,2016-08-21,EDK Schulferien 2016 (Stand 24.6.2015),local deviations possible
+CH-ZH,autumn,2016-10-08,2016-10-23,EDK Schulferien 2016 (Stand 24.6.2015),local deviations possible
+CH-ZH,christmas,2016-12-24,2017-01-08,EDK Schulferien 2016 (Stand 24.6.2015),local deviations possible
+CH-ZH,sport_unknown,2017-02-01,2017-02-28,EDK Schulferien 2017 (Stand 9.2.2017),sport week not listed (set by municipalities); February marked unknown
+CH-ZH,spring,2017-04-15,2017-04-30,EDK Schulferien 2017 (Stand 9.2.2017),local deviations possible
+CH-ZH,summer,2017-07-15,2017-08-20,EDK Schulferien 2017 (Stand 9.2.2017),local deviations possible
+CH-ZH,autumn,2017-10-07,2017-10-22,EDK Schulferien 2017 (Stand 9.2.2017),local deviations possible
+CH-ZH,christmas,2017-12-23,2018-01-07,EDK Schulferien 2017 (Stand 9.2.2017),local deviations possible
+CH-ZH,sport,2018-02-12,2018-02-23,EDK Schulferien 2018 (Stand 6.4.2017),weekdays only in source
+CH-ZH,spring,2018-04-23,2018-05-04,EDK Schulferien 2018 (Stand 6.4.2017),weekdays only in source
+CH-ZH,summer,2018-07-16,2018-08-17,EDK Schulferien 2018 (Stand 6.4.2017),weekdays only in source
+CH-ZH,autumn,2018-10-08,2018-10-19,EDK Schulferien 2018 (Stand 6.4.2017),weekdays only in source
+CH-ZH,christmas,2018-12-24,2019-01-04,EDK Schulferien 2018 (Stand 6.4.2017),weekdays only in source
+CH-ZH,sport,2019-02-11,2019-02-22,EDK Schulferien 2019 (Stand 30.8.2018),weekdays only in source
+CH-ZH,spring,2019-04-22,2019-05-03,EDK Schulferien 2019 (Stand 30.8.2018),weekdays only in source
+CH-ZH,summer,2019-07-15,2019-08-16,EDK Schulferien 2019 (Stand 30.8.2018),weekdays only in source
+CH-ZH,autumn,2019-10-07,2019-10-18,EDK Schulferien 2019 (Stand 30.8.2018),weekdays only in source
+CH-ZH,christmas,2019-12-23,2020-01-03,EDK Schulferien 2019 (Stand 30.8.2018),weekdays only in source
+CH-ZH,sport,2020-02-10,2020-02-21,EDK Schulferien 2020 (provisional; Stand 30.8.2018),not in OpenHolidays; weekdays only in source
+CH-ZH,sport_unknown,2021-02-01,2021-02-28,none,sport week set by municipalities; not in OpenHolidays; February marked unknown
+CH-ZH,sport_unknown,2022-02-01,2022-02-28,none,sport week set by municipalities; not in OpenHolidays; February marked unknown

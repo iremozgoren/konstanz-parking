@@ -39,6 +39,14 @@ def main(argv: list[str] | None = None) -> int:
     p_rep.add_argument("--processed", type=Path, default=Path("data/processed"))
     p_rep.add_argument("--reports", type=Path, default=Path("reports"))
 
+    p_aux = sub.add_parser("fetch-aux", help="download DWD weather, ECB CHF/EUR, school holidays")
+    p_aux.add_argument("--external", type=Path, default=Path("data/external"))
+
+    p_feat = sub.add_parser("features", help="join auxiliary data onto the 15-min grid")
+    p_feat.add_argument("--processed", type=Path, default=Path("data/processed"))
+    p_feat.add_argument("--external", type=Path, default=Path("data/external"))
+    p_feat.add_argument("--reports", type=Path, default=Path("reports"))
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -72,6 +80,18 @@ def main(argv: list[str] | None = None) -> int:
         from konstanz_parking.history.cli import clean
 
         clean(args.dumps, args.processed, args.reports)
+        return 0
+
+    if args.command == "fetch-aux":
+        from konstanz_parking.history.cli import fetch_aux
+
+        fetch_aux(args.external)
+        return 0
+
+    if args.command == "features":
+        from konstanz_parking.history.cli import features
+
+        features(args.processed, args.external, args.reports)
         return 0
 
     if args.command == "report":
