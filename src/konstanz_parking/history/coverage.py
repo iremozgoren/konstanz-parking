@@ -145,7 +145,8 @@ def to_markdown(table: pd.DataFrame) -> str:
         "| " + " | ".join([idx_name, *cols]) + " |",
         "|" + "---|" * (len(cols) + 1),
     ]
-    for idx, row in table.iterrows():
+    # itertuples keeps each column's dtype (iterrows would upcast ints to float).
+    for idx, *row in table.itertuples(index=True, name=None):
         cells = ["" if pd.isna(v) else (f"{v:g}" if isinstance(v, float) else str(v)) for v in row]
         lines.append("| " + " | ".join([str(idx), *cells]) + " |")
     return "\n".join(lines)

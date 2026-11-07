@@ -34,6 +34,11 @@ def main(argv: list[str] | None = None) -> int:
     p_clean.add_argument("--processed", type=Path, default=Path("data/processed"))
     p_clean.add_argument("--reports", type=Path, default=Path("reports"))
 
+    p_rep = sub.add_parser("report", help="data quality report for the ParkenDD history")
+    p_rep.add_argument("--dumps", type=Path, default=Path("data/external/parkendd"))
+    p_rep.add_argument("--processed", type=Path, default=Path("data/processed"))
+    p_rep.add_argument("--reports", type=Path, default=Path("reports"))
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -67,6 +72,12 @@ def main(argv: list[str] | None = None) -> int:
         from konstanz_parking.history.cli import clean
 
         clean(args.dumps, args.processed, args.reports)
+        return 0
+
+    if args.command == "report":
+        from konstanz_parking.history.report import build
+
+        print(f"wrote {build(args.dumps, args.processed, args.reports)}")
         return 0
 
     return 2

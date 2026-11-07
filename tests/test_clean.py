@@ -120,3 +120,18 @@ def test_grid_interpolates_only_short_gaps():
     assert grid.loc["2020-06-01 13:30":"2020-06-01 14:45", "free"].isna().all()
     assert not grid.loc["2020-06-01 13:30":"2020-06-01 14:45", "interpolated"].any()
     assert not grid["free"].loc["2020-06-01 10:00":"2020-06-01 10:45"].isna().any()
+
+
+def test_zero_dip_between_high_values_is_a_glitch_but_gradual_fill_is_not():
+    # LAGO-like morning reset: 910 -> 0 (15 min) -> 909.
+    glitch = readings(
+        "lago", "2020-06-01 06:30", [910] * 6 + [0] * 3 + [909, 905, 900] + wiggle(30, 880)
+    )
+    # Gradual fill-up to 0 on Saturday midday, then slowly emptying.
+    fill = list(range(60, 0, -5)) + [0] * 6 + list(range(5, 65, 5))
+    full = readings("lago", "2020-06-06 10:00", fill)
+    df, _ = run(glitch, full)
+    d = df.set_index("ts_local")
+    assert d.loc["2020-06-01 07:00":"2020-06-01 07:10", "zero_dip"].all()
+    sat_zero = d.loc["2020-06-06"].query("free == 0")
+    assert len(sat_zero) == 6 and sat_zero["valid"].all()

@@ -13,7 +13,10 @@ Flag rules (thresholds calibrated on the data, see the quality report):
   does not stay exactly constant for three daytime hours.
 - ``zero_closed``: a run of 0 lasting >= 1 h that is (almost) entirely outside daytime. Several car
   parks report 0 while closed at night: that is "no data", not "full".
-  Zero runs *during* the day are kept: they cluster on Saturdays 10-16 h, i.e. the car park is full.
+  Zero runs *during* the day are kept: they cluster on Saturdays 10-13 h, i.e. the car park is full.
+- ``zero_dip``: a run of 0 whose neighbouring readings (just before and after) are both above 20 %
+  of effective capacity. Several car parks drop to 0 for ~15 min every morning at 07:00 local
+  (and some at midnight), then return to ~900 free: a feed reset, not a full car park.
 - ``implausible_high``: free > 1.05 x effective capacity, or free > 1.2 x the larger official
   capacity (ArcGIS / ParkenDD) where one is known. The hard limit is applied first so that bogus
   readings (e.g. Seerheincenter reporting 1410 free in mid-2020) cannot inflate the effective
@@ -42,11 +45,19 @@ STUCK_DAY_H = 3.0
 ZERO_CLOSED_MIN_H = 1.0
 ZERO_CLOSED_MAX_DAY_OVERLAP_H = 1.0
 IMPLAUSIBLE_FACTOR = 1.05
+ZERO_DIP_NEIGHBOUR_SHARE = 0.2
 HARD_LIMIT_FACTOR = 1.2
 EFFECTIVE_CAPACITY_QUANTILE = 0.999
 CENSOR_AT = {"bodenseeforum": 500}
 
-INVALID_FLAGS = ["negative", "stuck_long", "stuck_day", "zero_closed", "implausible_high"]
+INVALID_FLAGS = [
+    "negative",
+    "stuck_long",
+    "stuck_day",
+    "zero_closed",
+    "zero_dip",
+    "implausible_high",
+]
 INFO_FLAGS = ["censored_high", "above_official_capacity", "dup_conflict", "from_backup"]
 
 
@@ -156,10 +167,23 @@ def _runs(df: pd.DataFrame) -> pd.DataFrame:
     overlap.loc[long_runs["run_id"].to_numpy()] = daytime_overlap_hours(
         long_runs["start"], long_runs["end"]
     )
+    # Values just before and just after each run (same lot only), for the zero-dip rule.
+    pos = pd.Series(np.arange(len(df)), index=df.index)
+    first_pos = pos.groupby(run_id).transform("min").to_numpy()
+    last_pos = pos.groupby(run_id).transform("max").to_numpy()
+    free = df["free"].to_numpy(dtype=float)
+    lots = lot.to_numpy()
+    prev_pos, next_pos = first_pos - 1, last_pos + 1
+    prev_ok = (prev_pos >= 0) & (lots[np.clip(prev_pos, 0, None)] == lots)
+    next_ok = (next_pos < len(df)) & (lots[np.clip(next_pos, None, len(df) - 1)] == lots)
+    prev_free = np.where(prev_ok, free[np.clip(prev_pos, 0, None)], np.nan)
+    next_free = np.where(next_ok, free[np.clip(next_pos, None, len(df) - 1)], np.nan)
     return df.assign(
         run_id=run_id,
         run_hours=run_hours,
         run_day_overlap_h=run_id.map(overlap).to_numpy(),
+        run_prev_free=prev_free,
+        run_next_free=next_free,
     )
 
 
@@ -226,6 +250,12 @@ def clean(raw: pd.DataFrame) -> tuple[pd.DataFrame, CleaningStats]:
     cap_eff = df["capacity_period"].map(stats.effective_capacity)
     df["capacity_effective"] = cap_eff
     df["implausible_high"] = above_hard | (df["free"] > IMPLAUSIBLE_FACTOR * cap_eff)
+    # A run of 0 surrounded by high values is a feed glitch: a car park cannot go from 900 free
+    # to full and back within minutes. Real fill-ups approach 0 gradually.
+    neighbours = df[["run_prev_free", "run_next_free"]].min(axis=1, skipna=True)
+    df["zero_dip"] = (
+        (df["free"] == 0) & (neighbours > ZERO_DIP_NEIGHBOUR_SHARE * cap_eff) & ~df["stuck_long"]
+    )
 
     official = df["lot_id"].map(lambda x: LOTS_BY_ID[x].arcgis_max_cap).astype("Float64")
     df["capacity_official"] = official
