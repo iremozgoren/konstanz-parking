@@ -47,20 +47,23 @@ A natural experiment is built into the history: during the Swiss–German border
 
 ## Data sources & licensing
 
-Some of the data used here is openly licensed and some is not.
+Some of the data used here is openly licensed and some is not. Each source keeps its own terms.
 
-| Source | Used for | License | Notes |
+| Source | Used for | License / terms | Attribution & notes |
 |---|---|---|---|
-| [Stadt Konstanz – Parkleitsystem web page](https://www.konstanz.de/leben+in+konstanz/mobilitaet/parkleitsystem) | **Primary** live free-space counts for the city-centre car parks | **No license stated.** | Scraped in line with the site's robots.txt (crawl-delay respected). I have asked the city for permission. Raw snapshots are kept for research; please do not reuse them without checking with the city. |
-| [Stadt Konstanz – ArcGIS "Parkplätze Live"](https://offenedaten-konstanz.de/dataset/parkplaetze-und-parkleitsystem) (via MobiData BW) | Capacities, coordinates, metadata; live fields when they work | **CC BY 4.0** © Stadt Konstanz, Amt für Liegenschaften und Geoinformation | As of Nov 2026 the live fields are empty for 9 of 11 sites (reported to the city). |
-| [MobiData BW ParkAPI v3](https://api.mobidata-bw.de/park-api/) – source `konstanz` | Same city data via the state platform | **CC BY 4.0** (Stadt Konstanz) | Shows the same gaps as ArcGIS. |
+| [Stadt Konstanz – ArcGIS "Parkplätze Live"](https://offenedaten-konstanz.de/dataset/parkplaetze-und-parkleitsystem) (via MobiData BW) | Capacities, coordinates, metadata; live fields when they work | **CC BY 4.0** | **© Stadt Konstanz, CC BY 4.0** (Amt für Liegenschaften und Geoinformation). As of Nov 2026 the live fields are empty for 9 of 11 sites. |
+| [MobiData BW ParkAPI v3](https://api.mobidata-bw.de/park-api/) – source `konstanz` | Same city data via the state platform | **CC BY 4.0** | **© Stadt Konstanz, CC BY 4.0**. Shows the same gaps as ArcGIS. |
 | MobiData BW ParkAPI v3 – source `pbw` | University car parks (control group) | **Not stated** by the platform for this source | Operator: Parkraumgesellschaft Baden-Württemberg. |
-| [ParkenDD dumps](https://parkendd.de/dumps/) | Historical 5-min data, 2015–2022 | **No license stated.** | Downloaded locally by `konstanz-parking download-parkendd` into a gitignored folder. **Never committed or redistributed.** |
-| [DWD Open Data](https://opendata.dwd.de/) – station 02712 Konstanz | Weather | DWD terms of use (open, attribution required) | |
-| [ECB data API](https://data.ecb.europa.eu/) – `EXR/D.CHF.EUR.SP00.A` | CHF/EUR exchange rate | ECB reuse policy (free, source must be cited) | |
-| [OpenHolidays API](https://www.openholidaysapi.org/) | School holidays for DE-BW, and for CH-TG/CH-ZH from 2020 | ODbL | Some Swiss school holidays are set per municipality, so canton-level dates are approximate. |
-| [EDK school holiday lists](https://www.edk.ch/de/bildungssystem/kantonale-schulorganisation/Schulferien) (via edudoc.ch / Internet Archive) | Swiss school holidays 2015–2019, transcribed with sources into `auxiliary/ch_school_holidays_manual.csv` | Reproduction with attribution | |
+| [Stadt Konstanz – Parkleitsystem web page](https://www.konstanz.de/leben+in+konstanz/mobilitaet/parkleitsystem) | **Primary** live free-space counts for the city-centre car parks | **No license stated** | Collected in line with the site's robots.txt: at most **1 request per 15 minutes**, retries wait ≥ 30 s (crawl-delay), and every request sends a descriptive User-Agent with a contact address. Raw snapshots are kept for this research project only. Please do not reuse them. |
+| [ParkenDD dumps](https://parkendd.de/dumps/) | Historical 5-min data, 2015–2022 | **No license stated** | Downloaded locally by `konstanz-parking download-parkendd` into a gitignored folder. **Never committed or redistributed**; only aggregate statistics and figures appear in `reports/`. |
+| [DWD Open Data](https://opendata.dwd.de/) – station 02712 Konstanz | Weather | **CC BY 4.0** ([DWD terms of use](https://opendata.dwd.de/climate_environment/CDC/Terms_of_use.pdf)) | **Source: Deutscher Wetterdienst (DWD), CC BY 4.0.** |
+| [ECB data API](https://data.ecb.europa.eu/) – `EXR/D.CHF.EUR.SP00.A` | CHF/EUR exchange rate | [ECB statistics reuse policy](https://www.ecb.europa.eu/stats/ecb_statistics/governance_and_quality_framework/html/usage_policy.en.html): free reuse, the source must be quoted and the statistics not altered | **Source: ECB statistics.** |
+| [OpenHolidays API](https://www.openholidaysapi.org/) | School holidays for DE-BW, and for CH-TG/CH-ZH from 2020 | **ODbL 1.0** ([data repository](https://github.com/openpotato/openholidaysapi.data)) | **Contains data from the OpenHolidays API, ODbL 1.0.** Some Swiss school holidays are set per municipality, so canton-level dates are approximate. |
+| [EDK school holiday lists](https://www.edk.ch/de/bildungssystem/kantonale-schulorganisation/Schulferien) (via edudoc.ch / Internet Archive) | Swiss school holidays 2015–2019, transcribed with sources into `auxiliary/ch_school_holidays_manual.csv` | Reproduction with source attribution ("Nachdruck nur mit Quellenangabe gestattet") | **Source: EDK / IDES, Schulferien 2015–2020.** |
 | [`holidays`](https://pypi.org/project/holidays/) Python package | Public holidays DE-BW, CH-TG, CH-ZH | MIT | |
+
+**Takedown:** If you own any of this data and want it removed, please contact me at
+irem11314@gmail.com.
 
 The **code** in this repository is licensed under the [MIT License](LICENSE). The MIT License
 covers the code only, **not** the data: each data source keeps its own terms listed above.

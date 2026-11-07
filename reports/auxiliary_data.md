@@ -8,8 +8,8 @@
 
 | Feature(s) | Source | Join | Licence |
 |---|---|---|---|
-| `temp_c`, `rel_humidity`, `precip_mm`, `precip_ind`, `sunshine_min`, `wind_ms` | DWD hourly observations, station **02712 Konstanz** (historical + recent files; historical wins) | Each 15-min bin gets the hourly record of the hour that contains it (record ending at the next full hour, UTC) | DWD open data, "Datenbasis: Deutscher Wetterdienst" |
-| `chf_per_eur` | ECB reference rate `EXR.D.CHF.EUR.SP00.A` | As of publication: the rate for day *d* is used from 16:00 local on *d*. Before that, and on weekends and TARGET holidays, the previous rate applies. **No look-ahead.** | ECB, free reuse with attribution |
+| `temp_c`, `rel_humidity`, `precip_mm`, `precip_ind`, `sunshine_min`, `wind_ms` | DWD hourly observations, station **02712 Konstanz** (historical + recent files; historical wins) | Each 15-min bin gets the hourly record of the hour that contains it (record ending at the next full hour, UTC) | CC BY 4.0, "Source: Deutscher Wetterdienst (DWD)" |
+| `chf_per_eur` | ECB reference rate `EXR.D.CHF.EUR.SP00.A` | As of publication: the rate for day *d* is used from 16:00 local on *d*. Before that, and on weekends and TARGET holidays, the previous rate applies. **No look-ahead.** | ECB reuse policy, "Source: ECB statistics" |
 | `de_public_holiday`, `ch_tg_public_holiday`, `ch_zh_public_holiday` (+ names) | Python `holidays` package (DE-BW, CH-TG, CH-ZH) | Local calendar date | MIT |
 | `de_school_holiday` | OpenHolidays API (DE-BW) | Local date | ODbL |
 | `ch_tg_school_holiday`, `ch_zh_school_holiday` | 2015–2019: **EDK national school holiday lists**, transcribed into `src/konstanz_parking/auxiliary/ch_school_holidays_manual.csv` (source per row). From 2020: OpenHolidays API | Local date | EDK lists: reproduction with attribution; OpenHolidays: ODbL |

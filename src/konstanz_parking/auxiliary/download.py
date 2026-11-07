@@ -1,8 +1,8 @@
 """Download auxiliary raw data into ``data/external/`` (gitignored; re-downloadable).
 
 - DWD hourly observations, station 02712 Konstanz (air temperature, precipitation, sunshine,
-  wind): historical and recent zips. License: DWD open data, attribution "Deutscher Wetterdienst".
-- ECB euro reference rate CHF per EUR (daily). Free reuse with source attribution.
+  wind): historical and recent zips. License: CC BY 4.0, "Source: Deutscher Wetterdienst".
+- ECB euro reference rate CHF per EUR (daily). ECB reuse policy: "Source: ECB statistics".
 - OpenHolidays API: school holidays for DE-BW, CH-TG, CH-ZH (ODbL).
 """
 
