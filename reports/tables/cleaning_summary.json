@@ -1,0 +1,24 @@
+{
+  "raw_rows": 5751148,
+  "unparseable": 0,
+  "backup_superseded": 83432,
+  "exact_duplicates": 135,
+  "conflicting_duplicates": 9,
+  "clean_rows": 5667572,
+  "valid_rows": 4719471,
+  "grid_rows": 2326224,
+  "grid_non_missing": 1593676,
+  "grid_interpolated": 854,
+  "effective_capacity": {
+    "altstadt": 259.0,
+    "augustiner": 270.0,
+    "benediktiner": 138.0,
+    "bodenseeforum": 500.0,
+    "doebele": 334.0,
+    "fischmarkt": 158.0,
+    "lago": 936.0,
+    "marktstaette": 250.0,
+    "seerheincenter": 280.0,
+    "seerheincenter@2019-01-01": 235.0
+  }
+}

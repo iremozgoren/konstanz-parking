@@ -55,6 +55,11 @@ LOTS: tuple[Lot, ...] = (
 
 LOTS_BY_ID: dict[str, Lot] = {lot.lot_id: lot for lot in LOTS}
 
+# Dates where a lot's effective capacity changes (the data-derived capacity is computed per
+# period). Seerheincenter: free counts top out at 280 in 2015-2017, the sensor is dead in
+# 2018-2019, and from 2020 on the ceiling is 222-235.
+CAPACITY_BREAKS: dict[str, tuple[str, ...]] = {"seerheincenter": ("2019-01-01",)}
+
 # Dump names that are not used, with the reason (shown in the coverage and quality reports).
 EXCLUDED_DUMPS: dict[str, str] = {
     "0": "scraper artefact: constant 0, no car park name",

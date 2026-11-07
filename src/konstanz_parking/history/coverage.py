@@ -27,16 +27,26 @@ def expected_slots_per_day(start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
     return pd.Series((minutes / 5).astype(int), index=days.tz_localize(None).date, name="expected")
 
 
-def daily_coverage(df: pd.DataFrame, mask: pd.Series | None = None) -> pd.DataFrame:
+def daily_coverage(
+    df: pd.DataFrame,
+    mask: pd.Series | None = None,
+    hours: tuple[int, int] | None = None,
+) -> pd.DataFrame:
     """Per lot and local day: present slots, expected slots, distinct values, usable flag.
 
     ``df`` needs ``lot_id``, ``ts_utc`` (tz-aware UTC) and ``free``. ``mask`` optionally selects
-    the rows that count (e.g. only valid readings after cleaning).
+    the rows that count (e.g. only valid readings after cleaning). ``hours=(7, 20)`` restricts
+    both present and expected slots to that local-time window (useful after cleaning, because
+    several car parks are closed at night and their night readings are flagged).
     """
     d = df if mask is None else df[mask]
     d = d.dropna(subset=["ts_utc", "free"])
     slot = d["ts_utc"].dt.floor(SLOT)
-    local_date = slot.dt.tz_convert(TZ).dt.date
+    local = slot.dt.tz_convert(TZ)
+    if hours is not None:
+        keep = (local.dt.hour >= hours[0]) & (local.dt.hour < hours[1])
+        d, slot, local = d[keep], slot[keep], local[keep]
+    local_date = local.dt.date
     g = pd.DataFrame(
         {"lot_id": d["lot_id"].astype(str), "date": local_date, "slot": slot, "free": d["free"]}
     ).groupby(["lot_id", "date"], observed=True)
@@ -51,6 +61,8 @@ def daily_coverage(df: pd.DataFrame, mask: pd.Series | None = None) -> pd.DataFr
     full = pd.MultiIndex.from_product([lots, exp.index], names=["lot_id", "date"]).to_frame(
         index=False
     )
+    if hours is not None:
+        exp = pd.Series((hours[1] - hours[0]) * 12, index=exp.index)  # no DST switch in 07-20 h
     full["expected"] = np.tile(exp.to_numpy(), len(lots))
     out = full.merge(per_day, on=["lot_id", "date"], how="left")
     out[["slots", "n_values"]] = out[["slots", "n_values"]].fillna(0).astype(int)

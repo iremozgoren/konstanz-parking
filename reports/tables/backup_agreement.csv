@@ -1,0 +1,5 @@
+lot_id,pairs,identical_pct,within_5_pct,mean_abs_diff
+altstadt,20716,69.2,99.1,1.11
+augustiner,20716,68.1,98.4,1.26
+fischmarkt,20716,72.4,99.4,0.81
+marktstaette,20716,64.5,99.2,1.03
