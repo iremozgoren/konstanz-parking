@@ -227,3 +227,9 @@ def test_cli_collect_returns_zero_when_all_sources_fail(tmp_path, monkeypatch):
 )
 def test_parkendd_index_parsing(html, expected):
     assert list_konstanz_files(html) == expected
+
+
+def test_user_agent_has_contact_and_no_blocked_words():
+    # konstanz.de hides the parking tables from UAs containing "collector".
+    assert "collector" not in USER_AGENT.lower()
+    assert "irem11314@gmail.com" in USER_AGENT

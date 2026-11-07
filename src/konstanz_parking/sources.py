@@ -9,7 +9,9 @@ from dataclasses import dataclass
 
 CONTACT_EMAIL = "irem11314@gmail.com"
 REPO_URL = "https://github.com/iremozgoren/konstanz-parking"
-USER_AGENT = f"konstanz-parking-collector/0.1 (+{REPO_URL}; {CONTACT_EMAIL})"
+# Do NOT put the word "collector" in the User-Agent: konstanz.de then serves the page without
+# the parking tables (verified 2026-11-07; "konstanz-parking/0.1 (...)" gets the full page).
+USER_AGENT = f"konstanz-parking/0.1 (+{REPO_URL}; {CONTACT_EMAIL})"
 
 # konstanz.de robots.txt asks for "Crawl-delay: 30". We make at most one request per run
 # to that host and wait at least this long before any retry.
