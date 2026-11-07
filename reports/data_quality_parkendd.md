@@ -299,6 +299,45 @@ Notes on the 2020 natural experiment:
 - The university car parks (the planned control group) are not in the ParkenDD history at all. They
   exist only in the live data collected since November 2026.
 
+### How much does the LAGO gap weaken the key window?
+
+The key window (`shops_open_border_closed`, 2020-04-20 to 2020-06-14) has
+56 days. Usable days per car park in that window (≥ 80 % valid slots, 07-20 h):
+
+| car park | usable days | of |
+|---|---|---|
+| altstadt | 55 | 56 |
+| augustiner | 56 | 56 |
+| benediktiner | 51 | 56 |
+| bodenseeforum | 56 | 56 |
+| doebele | 56 | 56 |
+| fischmarkt | 55 | 56 |
+| lago | 42 | 56 |
+| marktstaette | 54 | 56 |
+| seerheincenter | 48 | 56 |
+
+- **LAGO loses 14 of 56 days (25 %)**,
+  including 2 of the window's 8 Saturdays, which are the days
+  with the strongest shopping signal. The gap is one block (12-25 May). It starts the day after Swiss
+  shops reopened (11 May) and spans the 16 May easing, which did not allow shopping (see
+  `reports/auxiliary_data.md`). LAGO still has 22 usable days before the gap and
+  20 after it, so its window effect can be estimated, just less precisely.
+- **LAGO matters a lot for pooled numbers.** It holds 30 % of the
+  combined effective capacity of all nine car parks, and it sits next to the border, so it is probably
+  the car park most exposed to Swiss shoppers. A pooled occupancy series (sum of free spaces over all car
+  parks) would change its composition on 12-25 May. That would show up as a spurious level shift exactly
+  in the key window.
+- **Recommendation:** model per car park (car park fixed effects, or one model per car park) rather than a
+  pooled sum, and never fill the gap by interpolation. Run the main 2020 analysis in three variants and
+  report all of them:
+  1. **all car parks**, LAGO's frozen days dropped (main specification);
+  2. **without LAGO** (does the result depend on the most border-exposed car park?);
+  3. **all car parks, restricted to days where LAGO is valid** (identical days for every car park,
+     at the cost of 14 days).
+
+  If the estimated border effect agrees across the three variants, the gap does not matter. If it moves
+  noticeably, report the range, not just the main estimate.
+
 **15-minute grid:** 2 326 177 lot × 15-minute bins between each car park's first and last
 reading, 68.4 % of them non-missing. The missing bins are mostly the two big holes
 (2019 and 2021) and nights at car parks that close.

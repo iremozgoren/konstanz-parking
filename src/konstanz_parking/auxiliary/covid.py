@@ -13,12 +13,20 @@ Dates are local (Europe/Berlin) calendar days, verified 2026-11-07 against these
 - [4] Switzerland: "extraordinary situation" from 16 March 2020, shops closed (from 17 March);
   shops reopened 11 May 2020. https://www.plattformj.ch/artikel/180442/ ,
   https://www.blick.ch/schweiz/nach-sechs-wochen-corona-lockdown-heute-oeffnet-sich-die-schweiz-id15862917.html
-- [5] 16 May 2020: checks at the German/Austrian border eased, crossing allowed only for
-  partners, relatives and second-home owners (no shopping). 15 June 2020: free movement restored;
-  ceremony at the Konstanz/Kreuzlingen border. https://www.plattformj.ch/artikel/182614/ ,
-  https://www.plattformj.ch/artikel/181990/
+- [5] 16 May 2020: checks at the German/Austrian border eased, crossing allowed only to visit
+  family or a partner, or one's own property (plus allotment gardeners). "Einkaufen gelte nicht
+  als ein triftiger Reisegrund"; shopping tourists were turned back and fined.
+  https://www.plattformj.ch/artikel/181990/ . SRF, 14 May 2020: "Wenn am 15. Juni die Grenzen
+  wieder ganz aufgehen, dürfte auch der Einkaufstourismus wieder einsetzen."
+  https://www.srf.ch/news/schweiz/selbstdeklaration-fuer-paare-das-ist-sicher-noch-eine-knacknuss
+  15 June 2020: free movement restored, ceremony at the Konstanz/Kreuzlingen border.
+  https://www.plattformj.ch/artikel/182614/
 - [6] Germany: retail closed again from 16 December 2020 (second lockdown).
   https://www.baden-wuerttemberg.de/de/service/alle-meldungen/meldung/pid/bund-und-laender-einigen-sich-auf-lockdown-ab-16-dezember/
+
+``shopping_tourism_allowed``: False from 16 Mar to 14 Jun 2020 (crossing the border to shop was
+not a permitted reason), True otherwise. Later restrictions (quarantine rules, the second German
+retail lockdown) are not encoded in this flag.
 
 Phases (``covid_phase``):
 - ``pre_covid``: before 16 Mar 2020.
@@ -27,7 +35,9 @@ Phases (``covid_phase``):
   cannot be separated.
 - ``shops_open_border_closed``: 20 Apr - 14 Jun 2020. **Key window**: shops in BW open (≤ 800 m²
   at first), Swiss shoppers cannot come. Sub-events: Swiss shops reopen 11 May; partners and
-  relatives may cross from 16 May (shopping still not allowed).
+  relatives may cross from 16 May. **Shopping trips stay banned until 15 June** [5], so the
+  16 May easing does not end the key window (``border_partial_easing`` marks it only as a
+  sub-period; ``shopping_tourism_allowed`` stays False).
 - ``border_reopened``: 15 Jun - 15 Dec 2020.
 - ``later_covid``: from 16 Dec 2020 (second lockdown, later varying restrictions; not modelled
   in detail).
@@ -47,7 +57,8 @@ PHASES: list[tuple[str, str]] = [
 PHASE_ORDER = ["pre_covid"] + [p for p, _ in PHASES]
 
 CH_SHOPS_CLOSED = ("2020-03-17", "2020-05-10")  # inclusive, local dates [4]
-BORDER_PARTIAL_EASING_FROM = "2020-05-16"  # partners/relatives only [5]
+BORDER_PARTIAL_EASING_FROM = "2020-05-16"  # partners/relatives only, no shopping [5]
+SHOPPING_TOURISM_BANNED = ("2020-03-16", "2020-06-14")  # inclusive, local dates [1, 5]
 
 
 def phases(dates: pd.DatetimeIndex) -> pd.DataFrame:
@@ -62,5 +73,9 @@ def phases(dates: pd.DatetimeIndex) -> pd.DataFrame:
     )
     out["border_partial_easing"] = (out["covid_phase"] == "shops_open_border_closed") & (
         dates >= pd.Timestamp(BORDER_PARTIAL_EASING_FROM)
+    )
+    out["shopping_tourism_allowed"] = ~(
+        (dates >= pd.Timestamp(SHOPPING_TOURISM_BANNED[0]))
+        & (dates <= pd.Timestamp(SHOPPING_TOURISM_BANNED[1]))
     )
     return out

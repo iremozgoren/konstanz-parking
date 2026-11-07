@@ -365,9 +365,8 @@ def build(dump_dir: Path, processed: Path, reports: Path) -> Path:
 
     # Coverage (raw and after cleaning)
     raw_monthly = cov.monthly_coverage(cov.daily_coverage(raw))
-    valid_monthly = cov.monthly_coverage(
-        cov.daily_coverage(df, mask=df["valid"], hours=DAYTIME_HOURS)
-    )
+    daily_valid = cov.daily_coverage(df, mask=df["valid"], hours=DAYTIME_HOURS)
+    valid_monthly = cov.monthly_coverage(daily_valid)
     cov.plot_heatmap(
         raw_monthly,
         figures / "coverage_raw_heatmap.png",
@@ -398,10 +397,41 @@ def build(dump_dir: Path, processed: Path, reports: Path) -> Path:
     fig_frozen_example(ctx)
     fig_zero_weekday(ctx, zruns)
 
-    md = render(ctx, raw_monthly, valid_monthly, dst, freezes, gaps, zruns)
+    md = render(ctx, raw_monthly, valid_monthly, dst, freezes, gaps, zruns, daily_valid)
     out = reports / "data_quality_parkendd.md"
     out.write_text(md)
     return out
+
+
+KEY_WINDOW = ("2020-04-20", "2020-06-14")
+LAGO_GAP = ("2020-05-12", "2020-05-25")
+
+
+def lago_gap_impact(daily_valid: pd.DataFrame, effective_capacity: dict[str, float]) -> dict:
+    """Usable days per lot in the key window, and what the LAGO freeze removes."""
+    d = daily_valid.assign(date=pd.to_datetime(daily_valid["date"]))
+    w = d[(d["date"] >= KEY_WINDOW[0]) & (d["date"] <= KEY_WINDOW[1])]
+    days = w["date"].nunique()
+    table = w.groupby("lot_id")["usable"].sum().astype(int).rename("usable days").to_frame()
+    table["of"] = days
+    table.index.name = "car park"
+    lago = w[w["lot_id"] == "lago"]
+    lost = lago[~lago["usable"]]
+    sat = w.drop_duplicates("date")
+    # Capacity share: latest capacity period per lot.
+    caps = {}
+    for key, v in effective_capacity.items():
+        caps[key.split("@")[0]] = v  # later periods overwrite earlier ones (dict order)
+    return {
+        "window_days": days,
+        "table": table,
+        "lago_lost": len(lost),
+        "lago_lost_sat": int((lost["date"].dt.day_of_week == 5).sum()),
+        "sat_total": int((sat["date"].dt.day_of_week == 5).sum()),
+        "lago_before": int(lago[lago["date"] < LAGO_GAP[0]]["usable"].sum()),
+        "lago_after": int(lago[lago["date"] > LAGO_GAP[1]]["usable"].sum()),
+        "lago_cap_share": caps["lago"] / sum(caps.values()),
+    }
 
 
 def _window(monthly: pd.DataFrame, value: str) -> pd.DataFrame:
@@ -422,8 +452,10 @@ def render(
     freezes: pd.DataFrame,
     gaps: pd.DataFrame,
     zruns: pd.DataFrame,
+    daily_valid: pd.DataFrame,
 ) -> str:
     df, s, raw, raw_all = ctx.df, ctx.stats, ctx.raw, ctx.raw_all
+    lago = lago_gap_impact(daily_valid, s.effective_capacity)
     n_clean, n_valid = len(df), int(df["valid"].sum())
     excluded_rows = int(raw_all["lot_id"].isna().sum())
     per = s.per_lot
@@ -750,6 +782,39 @@ Notes on the 2020 natural experiment:
 - August 2020 has a feed-wide freeze (11-20 August, all car parks).
 - The university car parks (the planned control group) are not in the ParkenDD history at all. They
   exist only in the live data collected since November 2026.
+
+### How much does the LAGO gap weaken the key window?
+
+The key window (`shops_open_border_closed`, {KEY_WINDOW[0]} to {KEY_WINDOW[1]}) has
+{lago["window_days"]} days. Usable days per car park in that window (≥ 80 % valid slots, 07-20 h):
+
+{_md(lago["table"])}
+
+- **LAGO loses {lago["lago_lost"]} of {lago["window_days"]} days ({
+        _pct(lago["lago_lost"], lago["window_days"], 0)
+    })**,
+  including {lago["lago_lost_sat"]} of the window's {
+        lago["sat_total"]
+    } Saturdays, which are the days
+  with the strongest shopping signal. The gap is one block (12-25 May). It starts the day after Swiss
+  shops reopened (11 May) and spans the 16 May easing, which did not allow shopping (see
+  `reports/auxiliary_data.md`). LAGO still has {lago["lago_before"]} usable days before the gap and
+  {lago["lago_after"]} after it, so its window effect can be estimated, just less precisely.
+- **LAGO matters a lot for pooled numbers.** It holds {_pct(lago["lago_cap_share"], 1, 0)} of the
+  combined effective capacity of all nine car parks, and it sits next to the border, so it is probably
+  the car park most exposed to Swiss shoppers. A pooled occupancy series (sum of free spaces over all car
+  parks) would change its composition on 12-25 May. That would show up as a spurious level shift exactly
+  in the key window.
+- **Recommendation:** model per car park (car park fixed effects, or one model per car park) rather than a
+  pooled sum, and never fill the gap by interpolation. Run the main 2020 analysis in three variants and
+  report all of them:
+  1. **all car parks**, LAGO's frozen days dropped (main specification);
+  2. **without LAGO** (does the result depend on the most border-exposed car park?);
+  3. **all car parks, restricted to days where LAGO is valid** (identical days for every car park,
+     at the cost of {lago["lago_lost"]} days).
+
+  If the estimated border effect agrees across the three variants, the gap does not matter. If it moves
+  noticeably, report the range, not just the main estimate.
 
 **15-minute grid:** {_n(len(grid))} lot × 15-minute bins between each car park's first and last
 reading, {_pct(grid_cov, 1)} of them non-missing. The missing bins are mostly the two big holes

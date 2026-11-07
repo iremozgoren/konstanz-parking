@@ -159,3 +159,14 @@ def test_weather_load_and_15min_mapping(tmp_path):
     # Bins in 10:00-11:00 UTC get the record for the hour ending 11:00.
     assert m["temp_c"].tolist() == [21.0, 21.0]
     assert m["sunshine_min"].tolist() == [30.0, 30.0]
+
+
+def test_16_may_easing_does_not_open_the_border_for_shopping():
+    dates = pd.DatetimeIndex(
+        pd.to_datetime(["2020-03-15", "2020-05-15", "2020-05-16", "2020-06-14", "2020-06-15"])
+    )
+    p = covid.phases(dates)
+    assert p["shopping_tourism_allowed"].tolist() == [True, False, False, False, True]
+    assert p["border_partial_easing"].tolist() == [False, False, True, True, False]
+    # 16 May stays inside the key window.
+    assert (p.loc["2020-05-16":"2020-06-14", "covid_phase"] == "shops_open_border_closed").all()

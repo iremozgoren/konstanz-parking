@@ -2,7 +2,7 @@
 
 `uv run konstanz-parking fetch-aux` downloads the raw files into `data/external/` (gitignored).
 `uv run konstanz-parking features` joins them onto the cleaned 15-minute grid and writes
-`data/processed/features_15min.parquet` (one row per car park × 15 min, 39 columns).
+`data/processed/features_15min.parquet` (one row per car park × 15 min, 40 columns).
 
 ## Sources and how they are joined
 
@@ -65,9 +65,17 @@
 | `border_reopened` | 2020-06-15 – 12-15 | Free movement restored |
 | `later_covid` | from 2020-12-16 | Second German retail lockdown, later varying rules (not modelled) |
 
-Flags within the key window: `ch_shops_closed_covid` (Swiss shops closed 17 March – 10 May 2020)
-and `border_partial_easing` (from 16 May only partners, relatives and second-home owners could
-cross; shopping trips were still not allowed).
+Flags:
+- `shopping_tourism_allowed`: **False from 16 March to 14 June 2020.** The easing on 16 May only
+  allowed visits to family, a partner or one's own property. Shopping was explicitly *not* a valid
+  reason to cross, shopping tourists were turned back and fined, and shopping tourism only resumed
+  with the full opening on 15 June
+  ([plattformj, 17 May 2020](https://www.plattformj.ch/artikel/181990/);
+  [SRF, 14 May 2020](https://www.srf.ch/news/schweiz/selbstdeklaration-fuer-paare-das-ist-sicher-noch-eine-knacknuss)).
+  Later restrictions (quarantine rules, the second retail lockdown) are not encoded in this flag.
+- `border_partial_easing`: True from 16 May to 14 June 2020. It is a sub-period of the key window,
+  not the end of it.
+- `ch_shops_closed_covid`: Swiss shops closed from 17 March to 10 May 2020.
 
 Caveats for this window are in the ParkenDD quality report: LAGO's sensor is frozen from 12 to
 25 May 2020, and Seerheincenter has no pre-COVID baseline.
