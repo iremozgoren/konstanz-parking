@@ -89,7 +89,7 @@ tests/
 ## Known data quirks (for Phase 2)
 
 - konstanz.de hides the parking tables from User-Agents containing "collector" (probably a bot
-  keyword list). Every snapshot before the UA fix (until 2026-11-07 ~08:30 UTC) has `valid=false` for this
+  keyword list). Every snapshot before the UA fix (until 2026-11-07 08:16 UTC) has `valid=false` for this
   reason, not because the city's data was down. Keep the UA free of words like that.
 - The *"Derzeit sind keine aktuellen Belegungszahlen verfügbar"* notice is shown for one region box
   (Petershausen) even when the other tables are present. Only a page with no tables at all is invalid.
