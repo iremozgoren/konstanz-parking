@@ -47,6 +47,10 @@ def main(argv: list[str] | None = None) -> int:
     p_feat.add_argument("--external", type=Path, default=Path("data/external"))
     p_feat.add_argument("--reports", type=Path, default=Path("reports"))
 
+    p_an = sub.add_parser("analysis", help="Swiss shopping tourism analysis -> reports/analysis.md")
+    p_an.add_argument("--processed", type=Path, default=Path("data/processed"))
+    p_an.add_argument("--reports", type=Path, default=Path("reports"))
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -98,6 +102,12 @@ def main(argv: list[str] | None = None) -> int:
         from konstanz_parking.history.report import build
 
         print(f"wrote {build(args.dumps, args.processed, args.reports)}")
+        return 0
+
+    if args.command == "analysis":
+        from konstanz_parking.analysis.report import build as build_analysis
+
+        print(f"wrote {build_analysis(args.processed, args.reports)}")
         return 0
 
     return 2

@@ -43,6 +43,7 @@ select = ["E", "F", "W", "I", "UP", "B", "BLE", "SIM"]
 [tool.ruff.lint.per-file-ignores]
 # The report module is mostly a Markdown template; table rows cannot be wrapped.
 "src/konstanz_parking/history/report.py" = ["E501"]
+"src/konstanz_parking/analysis/report.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
