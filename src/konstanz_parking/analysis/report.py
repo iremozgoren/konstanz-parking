@@ -118,8 +118,8 @@ it reached the normal level at about the time the border reopened.
 - **This is not a clean Swiss effect.** The main estimate is reported as pre-specified, but it
   compares the *average* of `pre` (which includes the deep post-lockdown dip of late April) with
   the average of `post`. Most of it is the general recovery. Starting `pre` on 11 May (R1) lowers it
-  to {r.variants.iloc[3]["est"]:.1f} pp, and it would keep falling with later starts. **The DiD is
-  an upper bound, not an estimate of the Swiss effect.** The event study separates the two.
+  to {r.variants.iloc[3]["est"]:.1f} pp. **Read the DiD as an upper bound, not as an estimate of the
+  Swiss effect.** The event study tries to separate the two.
 
 ### Event study (pre-specified)
 
@@ -356,6 +356,55 @@ supply. Nothing below is a causal estimate.
 """
 
 
+def summary(r1: ne.Results, r2: sh.Results, r3: fxe.Results) -> tuple[str, str]:
+    """Summary table at the top and plain-language key findings at the end."""
+    lago = r1.by_group["lago"][1]
+    lj = [lago[k] for k in ("jump", "jump_last4", "jump_quad")]
+    lago_lo, lago_hi = min(x["est"] for x in lj), max(x["est"] for x in lj)
+    lago_cap = r1.capacity["lago"]
+    pooled = r1.jump
+    did = r1.variants.iloc[0]
+    h = r2.table.iloc[0]
+    h_lago = r2.table[r2.table["label"] == "7: LAGO"].iloc[0]
+    fx = r3.table.iloc[0]
+    pl = r2.table[r2.table["kind"] == "placebo"]["est"].abs().max()
+
+    table = f"""## Summary
+
+| Angle | Estimate [95 % CI] | What it means |
+|---|---|---|
+| 1. 2020 border closure (DiD) | {_ci(did)} pp | **Upper bound.** Mostly the post-lockdown recovery, not a Swiss effect. |
+| 1. Event study: step at reopening, all car parks | {_ci(pooled["jump"])} pp | Not robust: about 0 with a more flexible trend. |
+| 1. Event study: step at reopening, LAGO (exploratory) | {lago_lo:+.0f} to {lago_hi:+.0f} pp across trend shapes | Robust step at the border-near shopping centre, ≈ {lago_lo / 100 * lago_cap:.0f}–{lago_hi / 100 * lago_cap:.0f} cars. |
+| 2. Swiss holiday on a German shopping day | {_ci(h)} pp ({h["pct_of_mean"]:+.0f} %) | Robust across checks, but placebos reach ±{pl:.1f} pp. Not measurable on Saturdays (car parks full). |
+| 3. CHF/EUR, per 10 % stronger franc | {_ci(fx)} pp | No detectable association (correlational). |"""
+
+    findings = f"""## Key findings (plain language)
+
+1. **Swiss school holidays bring noticeably more cars to Konstanz.** On German shopping days when
+   Thurgau or Zürich has school holidays, daytime occupancy is about **{h["est"]:.0f} percentage
+   points ({h["pct_of_mean"]:.0f} %) higher** than on comparable days, roughly {h["cars"]:.0f}
+   extra cars on average during the day. At the LAGO shopping centre by the border it is about
+   {h_lago["est"]:.0f} points. The effect is larger when both cantons are on holiday. Up to about
+   2 points of it could be seasonal timing (placebo checks). On Saturdays the car parks are already
+   full, so any extra demand there cannot be seen in the data.
+2. **When the border reopened on 15 June 2020, occupancy at LAGO, the shopping centre next to the
+   border, jumped** by about {lago_lo:.0f}–{lago_hi:.0f} points
+   (≈ {lago_lo / 100 * lago_cap:.0f}–{lago_hi / 100 * lago_cap:.0f} cars) beyond its recovery
+   trend within a week. This comes from an exploratory analysis of one car park and one event. In
+   the city centre the same date looks like the end of a gradual post-lockdown recovery, and the
+   data cannot separate the two.
+3. **The exchange rate shows no measurable link with occupancy** once season and trends are taken
+   into account (2015–2020, a range of only ~13 %). Large effects are ruled out. Small ones cannot
+   be detected, and as an observational correlation it would not prove a cause anyway.
+
+*Short version for a CV:* "Pre-specified analysis of parking data from 2015–2022: Swiss school
+holidays go with ~{h["pct_of_mean"]:.0f} % higher daytime occupancy in Konstanz; the 2020 border
+reopening coincided with a ~{(lago_lo + lago_hi) / 2:.0f}-point jump at the border shopping
+centre; no measurable exchange-rate effect.\""""
+    return table, findings
+
+
 def build(processed: Path, reports: Path, external: Path = Path("data/external")) -> Path:
     figdir, tables = reports / "figures", reports / "tables"
     figdir.mkdir(parents=True, exist_ok=True)
@@ -363,16 +412,48 @@ def build(processed: Path, reports: Path, external: Path = Path("data/external")
     bins = panel.load_bins(processed)
     d = panel.daily(bins)
 
+    r1 = ne.run(d, bins)
+    r2 = sh.run(d, bins)
+    r3 = fxe.run(d, external / "ecb" / "ecb_chf_eur_daily.csv")
+    table, findings = summary(r1, r2, r3)
     parts = [
         HEADER,
-        angle1(ne.run(d, bins), figdir, tables),
-        angle2(sh.run(d, bins), figdir, tables),
-        angle3(fxe.run(d, external / "ecb" / "ecb_chf_eur_daily.csv"), figdir, tables),
+        table,
+        angle1(r1, figdir, tables),
+        angle2(r2, figdir, tables),
+        angle3(r3, figdir, tables),
+        LIMITATIONS,
         DEVIATIONS,
+        findings,
     ]
     out = reports / "analysis.md"
     out.write_text("\n\n".join(p.strip() for p in parts) + "\n")
     return out
+
+
+LIMITATIONS = """## Limitations
+
+- **Occupancy is capped at 100 %.** When car parks are full (most Saturdays, pre-Christmas), extra
+  demand turns into queues or parking elsewhere and is invisible. All effects are effects on
+  *occupancy*, not on the number of visitors, and they underestimate demand on busy days.
+- **No direct measure of Swiss visitors.** Every angle uses proxies (border status, Swiss holidays,
+  exchange rate). Other things that change on the same days (e.g. general tourism during Swiss
+  holidays, which also lifts the less shopping-oriented car parks) are partly included in the
+  estimates.
+- **2020 is one event.** The robust step is at one car park (LAGO). A LAGO-specific change on the
+  same date cannot be ruled out. The pooled 2020 evidence cannot separate the Swiss return from the
+  end of the post-lockdown recovery.
+- **Placebo tests for angle 2 are not zero** (about ±2 pp), so part of the holiday estimate may
+  be seasonal timing that the month fixed effects do not absorb.
+- **Data quality:** occupancy uses an *effective* capacity (99.9th percentile of observed free
+  spaces), because official capacities contradict the data. Gaps (2019, almost all of 2021) and
+  frozen sensors (LAGO in May 2020) are dropped, not imputed. See the
+  [quality report](data_quality_parkendd.md).
+- **Canton-level school holidays are approximations** (municipalities deviate; Zürich's sport week is
+  unknown in some years and those days are dropped). This blurs the treatment and probably biases
+  angle 2 towards zero.
+- **No control group outside the city.** The University of Konstanz car parks (`pbw`) exist only in
+  the live data collected since November 2026."""
 
 
 HEADER = """# Does Swiss shopping tourism drive parking occupancy in Konstanz?

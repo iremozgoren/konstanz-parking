@@ -16,12 +16,31 @@ reasons that have nothing to do with shopping.
 | 1 | Collector (GitHub Actions, every 15 min) + historical download | ✅ running |
 | 2 | Cleaning pipeline + data quality report | ✅ done for the 2015–2022 history ([report](reports/data_quality_parkendd.md)); live data pending |
 | 3 | Weather, FX and holiday features | ✅ joined onto the history ([notes](reports/auxiliary_data.md)) |
+| – | Analysis: how much does Swiss shopping tourism drive occupancy? | ✅ done for the history ([report](reports/analysis.md), [pre-specified plan](reports/analysis_plan.md)) |
 | 4 | Exploratory analysis | planned |
 | 5 | Occupancy forecasting model | planned |
 | 6 | Streamlit dashboard | planned |
 
 A natural experiment is built into the history: during the Swiss–German border closure
 (mid-March to mid-June 2020), Swiss shoppers could not come at all.
+
+## Key findings (2015–2022 history)
+
+Pre-specified analysis; effects with 95 % confidence intervals and all robustness checks are in
+[`reports/analysis.md`](reports/analysis.md).
+
+1. **Swiss school holidays bring noticeably more cars to Konstanz.** On German shopping days when
+   Thurgau or Zürich has school holidays, daytime occupancy is about 5 percentage points (7 %)
+   higher than on comparable days (≈ 140 extra cars on average during the day), and about
+   10 points at the LAGO shopping centre by the border. Up to about 2 points of this could be
+   seasonal timing (placebo checks). On Saturdays the car parks are already full, so any extra
+   demand cannot be seen in the data.
+2. **When the border reopened on 15 June 2020, occupancy at LAGO jumped** by about 23–25 points
+   (≈ 210–230 cars) beyond its recovery trend within a week. This comes from an exploratory
+   analysis of one car park and one event. In the city centre the same date looks like the end of
+   the post-lockdown recovery, and the data cannot separate the two.
+3. **The CHF/EUR exchange rate shows no measurable link with occupancy** once season and trends
+   are accounted for. Large effects are ruled out; small ones cannot be detected (correlational).
 
 ## How the collector works
 
@@ -86,6 +105,7 @@ uv run konstanz-parking clean        # flags → data/processed/parkendd_clean.p
 uv run konstanz-parking report       # → reports/data_quality_parkendd.md
 uv run konstanz-parking fetch-aux    # DWD, ECB, OpenHolidays → data/external/
 uv run konstanz-parking features     # → data/processed/features_15min.parquet
+uv run konstanz-parking analysis     # → reports/analysis.md (+ figures, tables)
 ```
 
 The collector workflow runs with `uv run --no-default-groups`, so it only installs `httpx`. The

@@ -72,6 +72,23 @@ tests/
   (`weather.py`, `fx.py`, `holidays.py`, `covid.py`, `features.py`). Report:
   `reports/data_quality_parkendd.md`; aux notes: `reports/auxiliary_data.md`. Cleaning the *live*
   collector data is still to do (reuse the flag logic).
+- Swiss shopping tourism analysis done **for the history** (2026-11-09): `src/konstanz_parking/analysis/`
+  (`fe.py` estimator, `panel.py`, `natural_experiment.py`, `swiss_holidays.py`, `fx_effect.py`,
+  `figures.py`, `report.py`). `uv run konstanz-parking analysis` → `reports/analysis.md`. Plan committed
+  before any model ran: `reports/analysis_plan.md`.
+
+## Analysis rules and results (decided with the user)
+
+- Pre-specify main estimates in `reports/analysis_plan.md` **before** running models; report every
+  listed robustness check whatever the result; list deviations and post-hoc checks in the report.
+- Estimator: own `analysis/fe.py` (absorbed FE by alternating projections, cluster / Driscoll–Kraay
+  SEs), tested against statsmodels. Outcome = daily mean occupancy 10–18 h in pp, shopping days only.
+- Results: 2020 DiD (+28 pp) is mostly post-lockdown recovery (upper bound). Only LAGO shows a step at
+  the 15 June reopening that is robust to the trend shape (+23–25 pp, exploratory). Swiss holiday on a
+  German shopping day: +4.6 pp [3.4, 5.7], placebos ±2 pp, Saturdays unmeasurable (car parks ~93 %
+  full). CHF/EUR: no detectable association.
+- Seerheincenter has valid data 2015–2017 (only 2018–2019 frozen), so it is in the pooled estimates.
+- The report prose is written for the current results: re-read it if data or cleaning change.
 
 ## Phase 2/3 pipeline rules
 
