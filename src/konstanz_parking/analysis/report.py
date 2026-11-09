@@ -226,6 +226,25 @@ def angle2(r: sh.Results, figdir: Path, tables: Path) -> str:
         "Swiss holidays on German shopping days: main estimate, breakdowns, placebos",
         "Extra daily occupancy 10–18 h vs comparable normal days (pp, 95 % CI)",
     )
+    # Compact version for the README: main estimate, weekday/Saturday, car park groups, placebos.
+    readme_rows = {
+        "Main: any TG/ZH holiday on a German shopping day": "All car parks (main estimate)",
+        "2a: on Mon–Fri": "Mon–Fri",
+        "2b: on Saturdays": "Saturdays (car parks already ~93 % full)",
+        "7: LAGO": "LAGO, border shopping centre",
+        "7: city centre": "City centre",
+        "7: less shopping-oriented": "Less shopping-oriented car parks",
+        "8: placebo, Swiss dates moved 14 days earlier": "Placebo: dates moved 2 weeks earlier",
+        "8: placebo, Swiss dates moved 14 days later": "Placebo: dates moved 2 weeks later",
+    }
+    compact = t[t["label"].isin(readme_rows)].copy()
+    compact["label"] = compact["label"].map(readme_rows)
+    figures.forest(
+        compact,
+        figdir / "analysis_swiss_holidays_summary.png",
+        "Extra occupancy on days with Swiss school/public holidays",
+        "Percentage points vs comparable days (95 % CI); placebos in grey",
+    )
     c = r.counts
     x = t.set_index("label")
     main = t.iloc[0]
