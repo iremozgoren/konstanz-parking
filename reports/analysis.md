@@ -137,6 +137,81 @@ none, but cannot rule it out.
 | Domestic tourism and events | BW hotels reopened in late May; large events stayed banned | **Not handled.** Tourism mainly builds up in July, after the step. The event ban keeps Bodenseeforum (comparison group) low. |
 | Holidays inside the windows | Ascension, Pentecost, Corpus Christi; BW Pentecost holidays 2–13 Jun | Public holidays are not shopping days (excluded); bridge days and BW school holidays are controlled. The reference week 8–14 Jun contains Corpus Christi and its bridge day, so it is a slightly unusual reference (the jump test uses all eight weeks, which limits the impact). |
 
+## 2. Swiss holidays on German shopping days (2015–2022)
+
+**Design (pre-specified).** On German shopping days (Mon–Sat, not a BW public holiday), compare
+occupancy on days when Thurgau or Zürich has a public or school holiday with other days **of the
+same car park in the same month and year**. Fixed effects: car park × year-month, car park ×
+weekday. Controls: weather, BW school holidays, bridge days. Standard errors are clustered by
+calendar week, because school holidays come in blocks of consecutive days.
+
+- Sample: 1,380 shopping days (Jul 2015–15 Mar 2020 and Apr–Dec 2022), 11,111
+  car-park-days, 436 of these dates with a Swiss holiday, spread over
+  97 calendar weeks.
+- 20 Dec–6 Jan is excluded (Swiss Christmas holidays coincide with the German pre-Christmas peak).
+  This also removes Berchtoldstag (2 January). The only Swiss-only public holiday left is **Swiss
+  National Day (1 August)**, on 5 dates.
+- 39 dates are dropped because the Zürich sport week is unknown.
+
+| Specification | Effect (pp) [95 % CI] | p | % of normal-day mean | ≈ cars | Obs. |
+|---|---|---|---|---|---|
+| **Main: any TG/ZH holiday on a German shopping day** | +4.6 [+3.4, +5.7] | < 0.001 | +7.0 % | ≈ +143 | 11,111 |
+| 1a: Swiss public holiday (only 1 August, 5 days) | +18.7 [+15.4, +21.9] | < 0.001 | +28.3 % | ≈ +583 | 11,111 |
+| 1b: Swiss school holiday only | +4.4 [+3.2, +5.5] | < 0.001 | +6.6 % | ≈ +136 | 11,111 |
+| 2a: on Mon–Fri | +5.5 [+4.3, +6.8] | < 0.001 | +8.4 % | ≈ +173 | 11,111 |
+| 2b: on Saturdays | +0.4 [-1.1, +1.8] | 0.620 | +0.5 % | ≈ +11 | 11,111 |
+| 3a: Thurgau only | +2.7 [+1.2, +4.1] | < 0.001 | +4.0 % | ≈ +83 | 11,022 |
+| 3b: Zürich only | +3.6 [+2.0, +5.1] | < 0.001 | +5.4 % | ≈ +112 | 11,022 |
+| 3c: both cantons | +5.9 [+4.5, +7.4] | < 0.001 | +9.0 % | ≈ +185 | 11,022 |
+| 4: only days without BW school holidays | +3.0 [+1.7, +4.3] | < 0.001 | +4.6 % | ≈ +94 | 8,516 |
+| 5: keeping 20 Dec–6 Jan (day-of-season FE) | +4.5 [+3.4, +5.6] | < 0.001 | +6.8 % | ≈ +140 | 11,670 |
+| 6: clustered by date | +4.6 [+3.8, +5.3] | < 0.001 | +7.0 % | ≈ +143 | 11,111 |
+| 7: LAGO | +10.3 [+8.3, +12.3] | < 0.001 | +16.1 % | ≈ +96 | 11,111 |
+| 7: city centre | +4.1 [+3.0, +5.3] | < 0.001 | +5.1 % | ≈ +53 | 11,111 |
+| 7: less shopping-oriented | +3.6 [+1.8, +5.5] | < 0.001 | +9.6 % | ≈ +23 | 11,111 |
+| 8: placebo, Swiss dates moved 14 days earlier | +1.4 [+0.3, +2.5] | 0.011 | +2.1 % | ≈ +44 | 7,651 |
+| 8: placebo, Swiss dates moved 14 days later | -1.9 [-3.0, -0.7] | 0.001 | -2.8 % | ≈ -58 | 7,651 |
+| 9: 15-minute level | +4.6 [+3.5, +5.7] | < 0.001 | +6.9 % | ≈ +143 | 354,987 |
+
+![Swiss holiday effects](figures/analysis_swiss_holidays.png)
+
+**Main estimate:** on a German shopping day with a Swiss holiday, average daytime occupancy is
+**4.6 pp higher** (95 % CI 3.4 to 5.7) than on comparable
+days. That is 7 % above the normal-day mean of 66 %,
+or ≈ +143 cars across the 3125 effective spaces of these car parks.
+
+What the breakdowns show:
+
+- **School holidays** carry almost all events (+4.4 pp). **Swiss National Day**
+  shows a much larger effect (+18.7 pp) but rests on only 5 days.
+  All of them fall inside the Swiss summer holidays, so they are not independent events. Treat it
+  as anecdotal.
+- **Weekdays vs Saturdays:** +5.5 pp on Mon–Fri, +0.4 pp on Saturdays
+  (+0.4 [-1.1, +1.8]). This is **not** evidence that Swiss shoppers stay away on Saturdays. On a normal
+  Saturday the city-centre car parks and LAGO are already about 93 % full on average (10–18 h), and
+  more than half of all Saturday quarter-hours are at ≥ 95 %. Extra demand cannot show up in
+  occupancy when the car parks are full: it turns into queues or parking elsewhere. **Occupancy
+  data cannot measure the Saturday effect.**
+- **Both cantons on holiday** (+5.9 pp) > Zürich only (+3.6) >
+  Thurgau only (+2.7). This dose-response pattern fits the hypothesis: more Swiss
+  people off school, more extra cars.
+- **By car park:** LAGO +10.3 [+8.3, +12.3] pp (+16 % of its normal level), city
+  centre +4.1 [+3.0, +5.3], less shopping-oriented +3.6 [+1.8, +5.5]. The ordering again points to the
+  border-near shopping centre, but the less shopping-oriented car parks also rise. Part of the
+  effect is therefore not shopping specific (e.g. Swiss day trips and tourism in general).
+- **Overlap with BW school holidays:** on days without BW school holidays the effect is
+  +3.0 [+1.7, +4.3] pp. That is smaller than the main estimate, so the BW school holiday control may
+  not fully separate the two when both fall in the same weeks.
+
+**Placebo test: not passed cleanly.** Moving the Swiss dates by two weeks should give zero. It gives
++1.4 pp (+1.4 [+0.3, +2.5]) and -1.9 pp (-1.9 [-3.0, -0.7]).
+School holidays fall at about the same time every year (e.g. July/August, October), and the
+month fixed effects do not absorb all patterns *within* a month. A shifted indicator picks up
+some of that seasonal timing. The placebo estimates are about a third of the main estimate and have
+opposite signs. A reasonable reading is that **roughly ±2 pp of the main estimate could be seasonal
+timing rather than Swiss holidays**. The effect stays positive under that margin but is less precise
+than the confidence interval suggests.
+
 ## Deviations from the plan
 
 - The plan said Seerheincenter has no valid data before 2020 and would drop out of angles 1 and 3.

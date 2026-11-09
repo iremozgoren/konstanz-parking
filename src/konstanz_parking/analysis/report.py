@@ -13,6 +13,7 @@ import pandas as pd
 
 from konstanz_parking.analysis import figures, panel
 from konstanz_parking.analysis import natural_experiment as ne
+from konstanz_parking.analysis import swiss_holidays as sh
 
 
 def _ci(r: dict | pd.Series, nd: int = 1) -> str:
@@ -201,6 +202,99 @@ none, but cannot rule it out.
 """
 
 
+def _effect_table(df: pd.DataFrame) -> str:
+    lines = [
+        "| Specification | Effect (pp) [95 % CI] | p | % of normal-day mean | ≈ cars | Obs. |",
+        "|---|---|---|---|---|---|",
+    ]
+    for _, r in df.iterrows():
+        name = f"**{r['label']}**" if r["kind"] == "main" else r["label"]
+        lines.append(
+            f"| {name} | {_ci(r)} | {_p(r['p'])} | {r['pct_of_mean']:+.1f} % | "
+            f"{_cars(r['cars'])} | {r['nobs']:,} |"
+        )
+    return "\n".join(lines)
+
+
+def angle2(r: sh.Results, figdir: Path, tables: Path) -> str:
+    t = r.table
+    t.to_csv(tables / "analysis_swiss_holidays.csv", index=False)
+    figures.forest(
+        t.assign(label=t["label"].str.replace("Main: ", "")),
+        figdir / "analysis_swiss_holidays.png",
+        "Swiss holidays on German shopping days: main estimate, breakdowns, placebos",
+        "Extra daily occupancy 10–18 h vs comparable normal days (pp, 95 % CI)",
+    )
+    c = r.counts
+    x = t.set_index("label")
+    main = t.iloc[0]
+    row = lambda prefix: t[t["label"].str.startswith(prefix)].iloc[0]  # noqa: E731
+    pub, school = row("1a"), row("1b")
+    wd, sat = row("2a"), row("2b")
+    no_bw = row("4:")
+    lago, centre, less = row("7: LAGO"), row("7: city"), row("7: less")
+    pl = t[t["kind"] == "placebo"]
+    del x
+
+    return f"""## 2. Swiss holidays on German shopping days (2015–2022)
+
+**Design (pre-specified).** On German shopping days (Mon–Sat, not a BW public holiday), compare
+occupancy on days when Thurgau or Zürich has a public or school holiday with other days **of the
+same car park in the same month and year**. Fixed effects: car park × year-month, car park ×
+weekday. Controls: weather, BW school holidays, bridge days. Standard errors are clustered by
+calendar week, because school holidays come in blocks of consecutive days.
+
+- Sample: {c["dates"]:,} shopping days (Jul 2015–15 Mar 2020 and Apr–Dec 2022), {c["obs"]:,}
+  car-park-days, {c["holiday_dates"]} of these dates with a Swiss holiday, spread over
+  {c["holiday_weeks"]} calendar weeks.
+- 20 Dec–6 Jan is excluded (Swiss Christmas holidays coincide with the German pre-Christmas peak).
+  This also removes Berchtoldstag (2 January). The only Swiss-only public holiday left is **Swiss
+  National Day (1 August)**, on {c["public_dates"]} dates.
+- {c["na_dropped_dates"]} dates are dropped because the Zürich sport week is unknown.
+
+{_effect_table(t)}
+
+![Swiss holiday effects](figures/analysis_swiss_holidays.png)
+
+**Main estimate:** on a German shopping day with a Swiss holiday, average daytime occupancy is
+**{main["est"]:.1f} pp higher** (95 % CI {main["lo"]:.1f} to {main["hi"]:.1f}) than on comparable
+days. That is {main["pct_of_mean"]:.0f} % above the normal-day mean of {c["mean_y_nonholiday"]:.0f} %,
+or {_cars(main["cars"])} cars across the {c["capacity"]:.0f} effective spaces of these car parks.
+
+What the breakdowns show:
+
+- **School holidays** carry almost all events ({school["est"]:+.1f} pp). **Swiss National Day**
+  shows a much larger effect ({pub["est"]:+.1f} pp) but rests on only {c["public_dates"]} days.
+  All of them fall inside the Swiss summer holidays, so they are not independent events. Treat it
+  as anecdotal.
+- **Weekdays vs Saturdays:** {wd["est"]:+.1f} pp on Mon–Fri, {sat["est"]:+.1f} pp on Saturdays
+  ({_ci(sat)}). This is **not** evidence that Swiss shoppers stay away on Saturdays. On a normal
+  Saturday the city-centre car parks and LAGO are already about 93 % full on average (10–18 h), and
+  more than half of all Saturday quarter-hours are at ≥ 95 %. Extra demand cannot show up in
+  occupancy when the car parks are full: it turns into queues or parking elsewhere. **Occupancy
+  data cannot measure the Saturday effect.**
+- **Both cantons on holiday** ({row("3c")["est"]:+.1f} pp) > Zürich only ({row("3b")["est"]:+.1f}) >
+  Thurgau only ({row("3a")["est"]:+.1f}). This dose-response pattern fits the hypothesis: more Swiss
+  people off school, more extra cars.
+- **By car park:** LAGO {_ci(lago)} pp ({lago["pct_of_mean"]:+.0f} % of its normal level), city
+  centre {_ci(centre)}, less shopping-oriented {_ci(less)}. The ordering again points to the
+  border-near shopping centre, but the less shopping-oriented car parks also rise. Part of the
+  effect is therefore not shopping specific (e.g. Swiss day trips and tourism in general).
+- **Overlap with BW school holidays:** on days without BW school holidays the effect is
+  {_ci(no_bw)} pp. That is smaller than the main estimate, so the BW school holiday control may
+  not fully separate the two when both fall in the same weeks.
+
+**Placebo test: not passed cleanly.** Moving the Swiss dates by two weeks should give zero. It gives
+{pl.iloc[0]["est"]:+.1f} pp ({_ci(pl.iloc[0])}) and {pl.iloc[1]["est"]:+.1f} pp ({_ci(pl.iloc[1])}).
+School holidays fall at about the same time every year (e.g. July/August, October), and the
+month fixed effects do not absorb all patterns *within* a month. A shifted indicator picks up
+some of that seasonal timing. The placebo estimates are about a third of the main estimate and have
+opposite signs. A reasonable reading is that **roughly ±2 pp of the main estimate could be seasonal
+timing rather than Swiss holidays**. The effect stays positive under that margin but is less precise
+than the confidence interval suggests.
+"""
+
+
 def build(processed: Path, reports: Path) -> Path:
     figdir, tables = reports / "figures", reports / "tables"
     figdir.mkdir(parents=True, exist_ok=True)
@@ -211,6 +305,7 @@ def build(processed: Path, reports: Path) -> Path:
     parts = [
         HEADER,
         angle1(ne.run(d, bins), figdir, tables),
+        angle2(sh.run(d, bins), figdir, tables),
         DEVIATIONS,
     ]
     out = reports / "analysis.md"

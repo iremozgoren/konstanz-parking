@@ -32,6 +32,7 @@ DAY_COLS = [
     "de_school_holiday",
     "de_shopping_day",
     "ch_public_holiday",
+    "ch_public_holiday_name",
     "ch_school_holiday",
     "ch_tg_public_holiday",
     "ch_zh_public_holiday",
