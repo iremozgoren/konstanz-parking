@@ -50,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     p_an = sub.add_parser("analysis", help="Swiss shopping tourism analysis -> reports/analysis.md")
     p_an.add_argument("--processed", type=Path, default=Path("data/processed"))
     p_an.add_argument("--reports", type=Path, default=Path("reports"))
+    p_an.add_argument("--external", type=Path, default=Path("data/external"))
 
     args = parser.parse_args(argv)
     logging.basicConfig(
@@ -107,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "analysis":
         from konstanz_parking.analysis.report import build as build_analysis
 
-        print(f"wrote {build_analysis(args.processed, args.reports)}")
+        print(f"wrote {build_analysis(args.processed, args.reports, args.external)}")
         return 0
 
     return 2

@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 
 from konstanz_parking.analysis import figures, panel
+from konstanz_parking.analysis import fx_effect as fxe
 from konstanz_parking.analysis import natural_experiment as ne
 from konstanz_parking.analysis import swiss_holidays as sh
 
@@ -295,7 +296,67 @@ than the confidence interval suggests.
 """
 
 
-def build(processed: Path, reports: Path) -> Path:
+def angle3(r: fxe.Results, figdir: Path, tables: Path) -> str:
+    t = r.table
+    t.to_csv(tables / "analysis_fx.csv", index=False)
+    figures.fx_figure(r, figdir / "analysis_fx.png")
+    figures.forest(
+        t.assign(label=t["label"].str.replace("Main: ", "")),
+        figdir / "analysis_fx_variants.png",
+        "CHF/EUR: main estimate and robustness checks",
+        "Occupancy change per 10 % stronger franc (pp, 95 % CI)",
+    )
+    c = r.counts
+    main = t.iloc[0]
+    lines = [
+        "| Specification | pp per 10 % stronger franc [95 % CI] | p | ≈ cars | Months | Obs. |",
+        "|---|---|---|---|---|---|",
+    ]
+    for _, x in t.iterrows():
+        name = f"**{x['label']}**" if x["kind"] == "main" else x["label"]
+        lines.append(
+            f"| {name} | {_ci(x)} | {_p(x['p'])} | {_cars(x['cars'])} | {x['months']} | {x['nobs']} |"
+        )
+    span = 100 * (c["fx_max"] / c["fx_min"] - 1)
+    lo_all, hi_all = t["lo"].min(), t["hi"].max()
+
+    return f"""## 3. CHF/EUR and occupancy (correlational)
+
+**Design (pre-specified).** Monthly panel per car park, {c["months"]} months between Jul 2015 and
+Feb 2020 ({c["obs"]} car-park-months with ≥ {fxe.MIN_DAYS} valid shopping days). Occupancy is
+regressed on log(EUR per CHF) with car park and calendar-month fixed effects, a linear trend per
+car park, weather, and the share of BW school holiday and Swiss holiday shopping days in the month.
+Standard errors are Driscoll–Kraay (robust to correlation across car parks and over
+{fxe.DK_LAGS} months).
+
+**This angle is correlational.** The exchange rate is not assigned at random. It moves slowly,
+together with the Swiss and German economies, retail trends (e.g. online shopping) and parking
+supply. Nothing below is a causal estimate.
+
+![CHF/EUR](figures/analysis_fx.png)
+
+{chr(10).join(lines)}
+
+![FX variants](figures/analysis_fx_variants.png)
+
+- **Main estimate:** {_ci(main)} pp per 10 % stronger franc (p {_p(main["p"])}). **No detectable
+  association.**
+- Every robustness check also has a confidence interval that includes zero. Taken together, they
+  run from {lo_all:+.1f} to {hi_all:+.1f} pp. The point estimates are all positive (the
+  direction the hypothesis predicts) but small.
+- **What this can and cannot say.** In the main sample the franc only moved between
+  {c["fx_min"]:.3f} ({c["fx_min_month"]}) and {c["fx_max"]:.3f} CHF per EUR ({c["fx_max_month"]}),
+  a range of about {span:.0f} %. The big franc shock of January 2015 is before the data starts.
+  About {100 * c["x_share_left"]:.0f} % of the within-car-park FX variation is left after season,
+  trends and controls, so the model has some variation to work with. The data **rule out large
+  effects** (more than about {hi_all:.0f} pp per 10 %) but cannot distinguish a small positive
+  association from zero.
+- The forecasting model (Phase 5) can still use the exchange rate as a feature. Its importance there
+  will be predictive, not causal.
+"""
+
+
+def build(processed: Path, reports: Path, external: Path = Path("data/external")) -> Path:
     figdir, tables = reports / "figures", reports / "tables"
     figdir.mkdir(parents=True, exist_ok=True)
     tables.mkdir(parents=True, exist_ok=True)
@@ -306,6 +367,7 @@ def build(processed: Path, reports: Path) -> Path:
         HEADER,
         angle1(ne.run(d, bins), figdir, tables),
         angle2(sh.run(d, bins), figdir, tables),
+        angle3(fxe.run(d, external / "ecb" / "ecb_chf_eur_daily.csv"), figdir, tables),
         DEVIATIONS,
     ]
     out = reports / "analysis.md"

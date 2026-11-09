@@ -77,3 +77,24 @@ def test_bridge_days():
 def test_doy_in_handles_windows_over_new_year():
     s = pd.Series(pd.to_datetime(["2019-12-19", "2019-12-20", "2020-01-06", "2020-01-07"]))
     assert panel.doy_in(s, "12-20", "01-06").tolist() == [False, True, True, False]
+
+
+def test_spline_trend_basis_has_requested_degrees_of_freedom():
+    from konstanz_parking.analysis.fx_effect import _spline
+
+    m = pd.DataFrame({"t": np.linspace(0, 5, 60)})
+    names = _spline(m, df=4)
+    assert len(names) == 4
+    assert np.isfinite(m[names].to_numpy()).all()
+
+
+def test_fx_monthly_lag_uses_previous_three_months(tmp_path):
+    from konstanz_parking.analysis.fx_effect import fx_monthly
+
+    days = pd.date_range("2020-01-01", "2020-05-31", freq="D")
+    rate = np.where(days.month <= 3, 1.0, 1.1)
+    csv = tmp_path / "ecb.csv"
+    pd.DataFrame({"TIME_PERIOD": days.strftime("%Y-%m-%d"), "OBS_VALUE": rate}).to_csv(csv)
+    m = fx_monthly(csv)
+    assert m.loc["2020-04", "x_lag3"] == pytest.approx(0.0)  # Jan-Mar at 1.0
+    assert m.loc["2020-04", "x"] == pytest.approx(-np.log(1.1))

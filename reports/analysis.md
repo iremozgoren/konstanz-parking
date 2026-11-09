@@ -212,6 +212,48 @@ opposite signs. A reasonable reading is that **roughly ±2 pp of the main estima
 timing rather than Swiss holidays**. The effect stays positive under that margin but is less precise
 than the confidence interval suggests.
 
+## 3. CHF/EUR and occupancy (correlational)
+
+**Design (pre-specified).** Monthly panel per car park, 52 months between Jul 2015 and
+Feb 2020 (423 car-park-months with ≥ 10 valid shopping days). Occupancy is
+regressed on log(EUR per CHF) with car park and calendar-month fixed effects, a linear trend per
+car park, weather, and the share of BW school holiday and Swiss holiday shopping days in the month.
+Standard errors are Driscoll–Kraay (robust to correlation across car parks and over
+6 months).
+
+**This angle is correlational.** The exchange rate is not assigned at random. It moves slowly,
+together with the Swiss and German economies, retail trends (e.g. online shopping) and parking
+supply. Nothing below is a causal estimate.
+
+![CHF/EUR](figures/analysis_fx.png)
+
+| Specification | pp per 10 % stronger franc [95 % CI] | p | ≈ cars | Months | Obs. |
+|---|---|---|---|---|---|
+| **Main: car-park linear trends** | +0.4 [-1.1, +1.9] | 0.587 | ≈ +13 | 52 | 423 |
+| 1: no trend | +1.5 [-0.3, +3.3] | 0.102 | ≈ +47 | 52 | 423 |
+| 2: common quadratic trend | +1.2 [-0.8, +3.2] | 0.249 | ≈ +38 | 52 | 423 |
+| 3: spline trend (4 df) | +0.5 [-1.6, +2.6] | 0.649 | ≈ +15 | 52 | 423 |
+| 4: FX lagged (mean of previous 3 months) | +0.3 [-1.8, +2.4] | 0.780 | ≈ +9 | 52 | 423 |
+| 5: excluding 2015 | +0.9 [-0.7, +2.4] | 0.289 | ≈ +27 | 46 | 385 |
+| 6: including Apr–Dec 2022 | +0.4 [-0.7, +1.5] | 0.466 | ≈ +12 | 61 | 504 |
+
+![FX variants](figures/analysis_fx_variants.png)
+
+- **Main estimate:** +0.4 [-1.1, +1.9] pp per 10 % stronger franc (p 0.587). **No detectable
+  association.**
+- Every robustness check also has a confidence interval that includes zero. Taken together, they
+  run from -1.8 to +3.3 pp. The point estimates are all positive (the
+  direction the hypothesis predicts) but small.
+- **What this can and cannot say.** In the main sample the franc only moved between
+  1.049 (2015-07) and 1.189 CHF per EUR (2018-04),
+  a range of about 13 %. The big franc shock of January 2015 is before the data starts.
+  About 77 % of the within-car-park FX variation is left after season,
+  trends and controls, so the model has some variation to work with. The data **rule out large
+  effects** (more than about 3 pp per 10 %) but cannot distinguish a small positive
+  association from zero.
+- The forecasting model (Phase 5) can still use the exchange rate as a feature. Its importance there
+  will be predictive, not causal.
+
 ## Deviations from the plan
 
 - The plan said Seerheincenter has no valid data before 2020 and would drop out of angles 1 and 3.

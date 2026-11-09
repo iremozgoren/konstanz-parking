@@ -199,7 +199,7 @@ def forest(
         ax.plot([r["lo"], r["hi"]], [yi, yi], color=c, lw=2, solid_capstyle="round")
         ax.plot(r["est"], yi, "o", color=c, ms=6, mec=ps.SURFACE, mew=1.5)
         ax.text(
-            r["hi"],
+            max(r["hi"], 0),
             yi,
             f"  {r['est']:+.1f} [{r['lo']:+.1f}, {r['hi']:+.1f}]",
             va="center",
@@ -212,6 +212,55 @@ def forest(
     ax.set_xlim(min(lo, 0) - 0.05 * (hi - lo), hi + 0.45 * (hi - min(lo, 0)))
     ax.set_xlabel(xlabel)
     ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
+def fx_figure(res, path: Path) -> None:
+    """Left: monthly CHF/EUR. Right: occupancy vs FX after removing season, trends and controls."""
+    ps.apply()
+    fx = res.fx.loc["2015-01":"2022-12"]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11, 3.8), gridspec_kw={"width_ratios": [1.4, 1]})
+    t = pd.PeriodIndex(fx.index, freq="M").to_timestamp()
+    a1.plot(t, fx["chf_per_eur"], color=ps.CATEGORICAL[0])
+    a1.axvspan(
+        pd.Timestamp("2015-07-01"), pd.Timestamp("2020-03-01"), color="#dfeaf8", lw=0, zorder=0
+    )
+    a1.text(
+        pd.Timestamp("2017-11-01"),
+        0.03,
+        "main sample",
+        transform=a1.get_xaxis_transform(),
+        ha="center",
+        va="bottom",
+        fontsize=8,
+        color=ps.TEXT_SECONDARY,
+    )
+    a1.set_ylabel("CHF per EUR (lower = stronger franc)")
+    a1.set_title("ECB reference rate, monthly mean")
+    a1.xaxis.set_major_locator(mdates.YearLocator())
+    a1.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+
+    r = res.resid
+    x = r["x_res"] * 100  # log points ≈ %
+    a2.axhline(0, color=ps.TEXT_SECONDARY, lw=0.8)
+    a2.axvline(0, color=ps.TEXT_SECONDARY, lw=0.8)
+    a2.scatter(x, r["y_res"], s=14, color=ps.CATEGORICAL[0], alpha=0.45, lw=0)
+    main = res.table.iloc[0]
+    slope = main["est"] / (100 * np.log(1.1))
+    xx = np.array([x.min(), x.max()])
+    a2.plot(
+        xx,
+        slope * xx,
+        color=ps.CATEGORICAL[1],
+        lw=2,
+        label=f"Main: {main['est']:+.1f} pp per 10 % [{main['lo']:+.1f}, {main['hi']:+.1f}]",
+    )
+    a2.set_xlabel("Franc strength vs expected (%, residual)")
+    a2.set_ylabel("Occupancy vs expected (pp, residual)")
+    a2.set_title("After season, trends and controls")
+    a2.legend(loc="upper left", fontsize=7.5)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
